@@ -12,13 +12,16 @@ import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
 import postRoutes from "./routes/posts.js";
 import activityRoutes from "./routes/Activity.js";
+import groupeRoutes from "./routes/groups.js"
 import { register } from "./controllers/auth.js";
 import { createPost } from "./controllers/posts.js";
 import { createActivity } from "./controllers/Activity.js";
 import { verifyToken } from "./middleware/auth.js";
 import User from "./models/User.js";
 import Post from "./models/Post.js";
-import { users, posts } from "./data/index.js";
+import { users, posts} from "./data/index.js";
+import { createGroup } from "./controllers/group.js";
+import Group from "./models/Group.js";
 
 /* CONFIGURATIONS */
 const __filename = fileURLToPath(import.meta.url);
@@ -48,13 +51,21 @@ const upload = multer({ storage });
 /* ROUTES WITH FILES */
 app.post("/auth/register", upload.single("picture"), register);
 app.post("/posts", verifyToken, upload.single("picture"), createPost);
+
 app.post("/activity", verifyToken, upload.single("picture"), createActivity);
+
+app.post("/addgroup", verifyToken, createGroup);
+
 
 /* ROUTES */
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 app.use("/posts", postRoutes);
+
 app.use("/activity", activityRoutes);
+
+app.use("/groups",groupeRoutes)
+
 
 /* MONGOOSE SETUP */
 const PORT = process.env.PORT || 6001;
