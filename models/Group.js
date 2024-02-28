@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import User from "./User.js";
 
 const groupSchema = mongoose.Schema(
   {
@@ -14,14 +15,23 @@ const groupSchema = mongoose.Schema(
       type: String,
       required: true,
     },
-    groupNumber: {
+    NumMumber: {
       type: Number,
       required: true,
     },
-    /*location: String,
     description: String,
-    picturePath: String,
-    userPicturePath: String,*/
+    members: [
+      {
+        memberId: {
+          type: String,
+          required: true,
+        },
+        memberName: {
+          type: String,
+          required: true,
+        },
+      },
+    ],
   },
   { timestamps: true }
 );
