@@ -5,12 +5,15 @@ import User from "../models/User.js";
 /* CREATE */
 export const createGroup = async (req, res) => {
   try {
-    const { groupId, groupAdminId, groupName, groupNumber } = req.body;
+    const { groupId, groupAdminId, groupName,description,members} = req.body;
+    const numMembers = members.length;
     const newGroup = new Group({
       groupId,
       groupAdminId,
       groupName,
-      groupNumber,
+      NumMumber: numMembers,
+      description,
+      members
     });
     await newGroup.save();
 
@@ -44,12 +47,12 @@ export const getGroupsID = async (req, res) => {
 /* UPDATE */
 export const updateGroup = async (req, res) => {
   const { groupId } = req.params;
-  const { groupName, groupNumber} = req.body;
+  const { groupName, NumMumber, description, members } = req.body;
 
   try {
     const updatedGroup = await Group.findByIdAndUpdate(
       groupId,
-      { groupName, groupNumber },
+      { groupName, NumMumber, description, members },
       { new: true } // Return the modified document
     );
 

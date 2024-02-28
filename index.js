@@ -13,6 +13,7 @@ import userRoutes from "./routes/users.js";
 import postRoutes from "./routes/posts.js";
 import activityRoutes from "./routes/Activity.js";
 import groupeRoutes from "./routes/groups.js"
+//import eventRoutes from "./routes/events.js"
 import { register } from "./controllers/auth.js";
 import { createPost } from "./controllers/posts.js";
 import { createActivity } from "./controllers/Activity.js";
@@ -22,7 +23,6 @@ import Post from "./models/Post.js";
 import { users, posts} from "./data/index.js";
 import { createGroup } from "./controllers/group.js";
 import Group from "./models/Group.js";
-
 /* CONFIGURATIONS */
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -66,6 +66,7 @@ app.use("/activity", activityRoutes);
 
 app.use("/groups",groupeRoutes)
 
+//app.use("/events",eventRoutes)
 
 /* MONGOOSE SETUP */
 const PORT = process.env.PORT || 6001;
