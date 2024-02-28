@@ -15,6 +15,7 @@ export const register = async (req, res) => {
       location,
       occupation,
     } = req.body;
+    //console.log('Request Body:', req.body);
 
     const salt = await bcrypt.genSalt();
     const passwordHash = await bcrypt.hash(password, salt);
@@ -34,6 +35,7 @@ export const register = async (req, res) => {
     const savedUser = await newUser.save();
     res.status(201).json(savedUser);
   } catch (err) {
+    //console.error("Register error:", err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -53,6 +55,7 @@ export const login = async (req, res) => {
     delete user.password;
     res.status(200).json({ token, user });
   } catch (err) {
+    //console.error("Login error:", err);
     res.status(500).json({ error: err.message });
   }
 };
