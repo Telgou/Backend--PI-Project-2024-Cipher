@@ -22,8 +22,8 @@ export const pregister = async (req, res) => {
     await savedPreUser.save();
 
     // Send an email with the token to the user
-    await sendTokenEmail(email, token);
-
+    //await sendTokenEmail(email, token);
+    console.log(token);
 
     res.status(201).json("pregistered correctly");
   } catch (err) {
@@ -67,6 +67,7 @@ export const register = async (req, res) => {
       viewedProfile: 0,
       impressions: 0,
     });
+    preUser.delete();
     const savedUser = await newUser.save();
     res.status(201).json(savedUser);
   } catch (err) {

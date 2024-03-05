@@ -18,9 +18,10 @@ import { register } from "./controllers/auth.js";
 import { createPost } from "./controllers/posts.js";
 import { createActivity } from "./controllers/Activity.js";
 import { verifyToken } from "./middleware/auth.js";
+import { restrict } from "./middleware/role-authorize.js";
 import User from "./models/User.js";
 import Post from "./models/Post.js";
-import { users, posts} from "./data/index.js";
+import { users, posts } from "./data/index.js";
 import { createGroup } from "./controllers/group.js";
 import Group from "./models/Group.js";
 /* CONFIGURATIONS */
@@ -51,6 +52,7 @@ const upload = multer({ storage });
 /* ROUTES WITH FILES */
 app.post("/auth/register", upload.single("picture"), register);
 app.post("/posts", verifyToken, upload.single("picture"), createPost);
+//app.post('/posts', verifyToken, restrict('admin'), upload.single('picture'), createPost);
 
 app.post("/activity", verifyToken, upload.single("picture"), createActivity);
 
@@ -64,16 +66,16 @@ app.use("/posts", postRoutes);
 
 app.use("/activity", activityRoutes);
 
-app.use("/groups",groupeRoutes)
+app.use("/groups", groupeRoutes)
 
 //app.use("/events",eventRoutes)
 
 /* MONGOOSE SETUP */
-const PORT = process.env.PORT || 6001;
+const PORT = process.env.PORT || 3001;
 const mongoport = process.env.MONGO_URL || 'mongodb://localhost:27017/snu'
 console.log(mongoport);
 mongoose
-  .connect( mongoport, {
+  .connect(mongoport, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
