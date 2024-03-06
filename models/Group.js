@@ -22,14 +22,21 @@ const groupSchema = mongoose.Schema(
     description: String,
     members: [
       {
-        memberId: {
-          type: String,
-          required: true,
+        userId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
         },
-        memberName: {
+        firstName: {
           type: String,
-          required: true,
         },
+        lastName: {
+          type: String,
+        },
+        /*role: {
+          type: String,
+          enum: ["admin", "member"],
+          default: "member",
+        },*/
       },
     ],
   },

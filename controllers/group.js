@@ -5,15 +5,21 @@ import User from "../models/User.js";
 /* CREATE */
 export const createGroup = async (req, res) => {
   try {
-    const { groupId, groupAdminId, groupName,description,members} = req.body;
+    const {groupId, groupAdminId, groupName,description,members} = req.body;
     const numMembers = members.length;
+    const users = await User.find({_id: {$in: members.map(member => member.userId)}});
+    const formattedMembers = users.map(user => ({ userId: user._id, firstName: user.firstName, lastName: user.lastName, }));
+    if (!users) {
+      return res.status(404).json({ message: "User not found" });
+    }
     const newGroup = new Group({
+      _id: new mongoose.Types.ObjectId(),
       groupId,
       groupAdminId,
       groupName,
       NumMumber: numMembers,
       description,
-      members
+      members: formattedMembers,
     });
     await newGroup.save();
 
