@@ -56,7 +56,7 @@ app.post("/posts", verifyToken, upload.single("picture"), createPost);
 
 app.post("/activity", verifyToken, upload.single("picture"), createActivity);
 
-app.post("/addgroup", verifyToken, createGroup);
+app.post("/addgroup", createGroup);
 
 
 /* ROUTES */

@@ -5,13 +5,13 @@ import { verifyToken } from "../middleware/auth.js";
 const router = express.Router();
 
 /* READ */
-router.get("/get", verifyToken, getGroups);
-router.get("/:groupId/groups", verifyToken, getGroupsID);
+router.get("/get", getGroups);
+router.get("/:groupId/groups", getGroupsID);
 
 /* UPDATE */
-router.put("/:groupId/update", verifyToken, updateGroup);
+router.put("/:groupId/update", updateGroup);
 
 /* Delete*/
-router.delete("/:groupId/delete", verifyToken, deleteGroup);
+router.delete("/:groupId/delete", deleteGroup);
 
 export default router;
