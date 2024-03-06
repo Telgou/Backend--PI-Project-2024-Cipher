@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import PreUser from "../models/preUser.js";
 
-/* Pregister USER */ 
+/* Pregister USER */
 export const pregister = async (req, res) => {
   try {
     const {
@@ -18,7 +18,7 @@ export const pregister = async (req, res) => {
 
     const savedPreUser = await newPreUser.save();
     const token = generateRandomToken(10);
-    savedPreUser.token=token;
+    savedPreUser.token = token;
     await savedPreUser.save();
 
     // Send an email with the token to the user
@@ -28,6 +28,21 @@ export const pregister = async (req, res) => {
     res.status(201).json("pregistered correctly");
   } catch (err) {
     console.error("preRegister error:", err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+/* Verifying */
+export const verifyuser = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const preuser = await PreUser.findOne({ email: email });
+    if (!preuser) return res.status(404).json({ msg: "No one has registered with this email.", verified: false });
+
+    preuser.verified = true;
+    preuser.save();
+    res.status(200).json({ verified: true });
+  } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
@@ -47,10 +62,13 @@ export const register = async (req, res) => {
     } = req.body;
     //console.log('Request Body:', req.body);
 
-     const preUser = await PreUser.findOne({ token: tok });
-     if (!preUser) {
-       return res.status(401).json({ error: "PreUser not found for the provided token" });
-     }
+    const preUser = await PreUser.findOne({ token: tok });
+    if (!preUser) {
+      return res.status(404).json({ error: "PreUser not found for the provided token" });
+    }
+    if (preUser.valid === false) {
+      return res.status(403).json({ error: "You are still unverified" });
+    }
 
     const salt = await bcrypt.genSalt();
     const passwordHash = await bcrypt.hash(password, salt);
@@ -58,7 +76,7 @@ export const register = async (req, res) => {
     const newUser = new User({
       firstName,
       lastName,
-      email : preUser.email,
+      email: preUser.email,
       password: passwordHash,
       picturePath,
       friends,
@@ -87,7 +105,7 @@ export const login = async (req, res) => {
     if (!isMatch) return res.status(400).json({ msg: "Invalid credentials. " });
 
     console.log('JWT_SECRET:', process.env.JWT_SECRET);
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET);
     delete user.password;
     res.status(200).json({ token, user });
   } catch (err) {

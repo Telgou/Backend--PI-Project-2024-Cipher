@@ -7,16 +7,20 @@ const PreUserSchema = new mongoose.Schema(
       required: true,
       max: 50,
       unique: true,
-      validate: {
+      /*validate: {
         validator: function (value) {
           return value.endsWith("@esprit.tn");
         },
         message: props => `${props.value} is not a valid email, it must end with "@esprit.tn"`,
-      },
+      },*/
     },
     token: {
       type: String,
     },
+    valid: {
+      type: Boolean,
+      default: false,
+    }
   },
   { timestamps: true }
 );

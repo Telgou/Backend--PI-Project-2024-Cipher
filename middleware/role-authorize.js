@@ -16,14 +16,14 @@ export const restrict = (...role) => {
             throw new UnauthenticatedError('User ID is undefined');
         }
 
-        const user = await User.findOne({ _id: userId });
+        //const user = await User.findOne({ _id: userId });
 
-        const userRoles = user.role;
-        console.log(user);
+        const userRoles = req.user.role;
+        console.log(req.user);
 
-        if (!userRoles || !userRoles.some((r) => role.includes(r))) {
+        if (userRoles==undefined ||!userRoles || !userRoles.some((r) => role.includes(r))) {
 
-            res.status(500).json({ error: 'UnauthenticatedError' });
+            res.status(401).json({ error: 'Your roles are not allowed to access this route' });
  
         }
         next();

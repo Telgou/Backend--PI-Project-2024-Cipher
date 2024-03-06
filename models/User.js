@@ -33,21 +33,40 @@ const UserSchema = new mongoose.Schema(
       type: Array,
       default: [],
     },
-    location: String,
     occupation: String,
-    viewedProfile: Number,
-    impressions: Number,
     role: {
-
-      type: [String],
+      type: String,
 
       enum: ['admin', 'prof', 'coordinator', 'dephead'],
 
-      default: ['prof'],
-    }
+      default: 'prof',
+    },
+    score: {
+      type: Map,
+      of: Number
+    },
+    location: String,
+    viewedProfile: Number,
+    impressions: Number,
+
   },
   { timestamps: true }
 );
 
 const User = mongoose.model("User", UserSchema);
 export default User;
+
+const Admin = User.discriminator('admin', new mongoose.Schema({
+  // Add any admin-specific fields here, e.g.,
+  adminPrivileges: [String]
+}));
+
+const Coordinator = User.discriminator('coordinator', new mongoose.Schema({
+  // Add coordinator-specific fields here, e.g.,
+  department: String
+}));
+
+const DepHead = User.discriminator('depHead', new mongoose.Schema({
+  // Add department head-specific fields here, e.g.,   
+  faculty: String
+}));

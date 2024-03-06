@@ -5,11 +5,10 @@ export const verifyToken = async (req, res, next) => {
     let token = req.header("Authorization");
 
     if (!token) {
-      return res.status(403).send("Access Denied");
+      return res.status(401).send("Access Denied");
     }
-
     if (!token.startsWith("Bearer ")) {
-      return res.status(403).send("Invalid Token Format");
+      return res.status(401).send("Invalid Token Format");
     }
 
     if (token.startsWith("Bearer ")) {
@@ -20,7 +19,10 @@ export const verifyToken = async (req, res, next) => {
 
     // process.env.JWT_SECRET
     const verified = jwt.verify(token, process.env.JWT_SECRET);
+    //console.log(verified)
+
     req.user = verified;
+    req.user.role = verified.role;
     //req.userid = verified.id;
     next();
   } catch (err) {
