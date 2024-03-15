@@ -34,13 +34,20 @@ const UserSchema = new mongoose.Schema(
       default: [],
     },
     occupation: String,
-    role: {
+    /*role: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Role',
+      required: true
+    },*/
+
+    /*role: {
       type: String,
 
       enum: ['admin', 'prof', 'coordinator', 'dephead'],
 
       default: 'prof',
-    },
+    },*/
+    role :{ type : String, default : 'prof'},
     score: {
       type: Map,
       of: Number
@@ -48,25 +55,35 @@ const UserSchema = new mongoose.Schema(
     location: String,
     viewedProfile: Number,
     impressions: Number,
-
   },
-  { timestamps: true }
+  { timestamps: true, discriminatorKey: 'role' }
 );
-
 const User = mongoose.model("User", UserSchema);
-export default User;
 
-const Admin = User.discriminator('admin', new mongoose.Schema({
-  // Add any admin-specific fields here, e.g.,
-  adminPrivileges: [String]
-}));
-
+// Roles
 const Coordinator = User.discriminator('coordinator', new mongoose.Schema({
-  // Add coordinator-specific fields here, e.g.,
-  department: String
+  UP: String
 }));
 
 const DepHead = User.discriminator('depHead', new mongoose.Schema({
-  // Add department head-specific fields here, e.g.,   
-  faculty: String
+  department: String
 }));
+
+const Admin = User.discriminator('admin', new mongoose.Schema({
+  //adminPrivileges: [String]
+}));
+
+// Roles Schemas
+const roleSchema = new mongoose.Schema({
+  name: { type: String, required: true, unique: true },
+  //permissions: [permissionSchema]
+});
+const Role = mongoose.model("Role", roleSchema);
+
+// Permissions Schema
+const permissionSchema = new mongoose.Schema({
+  action: { type: String, required: true },
+  resource: { type: String, required: true },
+  //attributes: { type: Object } // For attribute-based conditions
+});
+export { User, Role, Coordinator, DepHead, Admin }; 

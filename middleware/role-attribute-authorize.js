@@ -1,4 +1,5 @@
-import {User} from "../models/User.js";
+import User from "../models/User.js";
+import { Role } from "../models/User.js";
 
 class UnauthenticatedError extends Error {
     constructor(message) {
@@ -12,20 +13,21 @@ export const restrict = (...role) => {
     return async (req, res, next) => {
         console.log(req.user.id);
         const userId = req.user.id;
-        if (!userId) {
-            throw new UnauthenticatedError('User ID is undefined');
-        }
+        const userDiscriminator = req.user.role;
 
-        //const user = await User.findOne({ _id: userId });
+        Role.findOne({ name: userDiscriminator })
+            .then(role => {
+                if (!role) {
+                    return res.status(403).json({ error: 'Forbidden' }); // Handle if no matching role
+                }
 
-        const userRoles = req.user.role;
-        console.log(req.user);
+                const userPermissions = role.permissions;
+                // ... (rest of your permission check logic from previous examples) 
+            })
+            .catch(err => {
+                // Handle database errors
+            });
 
-        if (userRoles==undefined ||!userRoles || /*!userRoles.some((r) => role.includes(r))*/ !role.includes(userRoles)) {
-
-            res.status(401).json({ error: 'Your roles are not allowed to access this route' });
- 
-        }
         next();
     };
 };

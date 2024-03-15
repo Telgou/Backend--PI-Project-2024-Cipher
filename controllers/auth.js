@@ -2,7 +2,7 @@ import bcrypt from "bcrypt";
 import crypto from 'crypto';
 import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
-import User from "../models/User.js";
+import { Coordinator, User } from "../models/User.js";
 import PreUser from "../models/preUser.js";
 
 /* Pregister USER */
@@ -32,18 +32,53 @@ export const pregister = async (req, res) => {
   }
 };
 
-/* Verifying */
+/* PREREGISTRATION  Verifying */
+export const getPreUsers = async (req, res) => {
+  try {
+    const user = await PreUser.find();
+    res.status(200).json(user);
+  } catch (err) {
+    res.status(404).json({ message: err.message });
+  }
+};
+
 export const verifyuser = async (req, res) => {
   try {
-    const { email } = req.body;
+    //const { email } = req.body;
+    const { email, valid } = req.params;
+    //console.log(valid)
     const preuser = await PreUser.findOne({ email: email });
     if (!preuser) return res.status(404).json({ msg: "No one has registered with this email.", verified: false });
 
-    preuser.verified = true;
-    preuser.save();
-    res.status(200).json({ verified: true });
+    /*if (valid === false) preuser.valid = true;
+    else preuser.valid = false;
+    console.log(preuser)*/
+    if (valid != preuser.valid.toString()) {
+      //console.log(valid != preuser.valid, " ", valid, preuser.valid)
+      return res.status(204).json({ verified: preuser.valid });
+    }
+    preuser.valid = !preuser.valid;
+    await preuser.save();
+
+    res.status(200).json({ verified: preuser.valid });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+};
+
+export const deletePreUser = async (req, res) => {
+  const { email } = req.params;
+  try {
+    const deletedPreUser = await PreUser.deleteOne({ email: email });
+
+    if (!deletedPreUser.deletedCount) {
+      return res.status(404).json({ message: 'PreUser not found' });
+    }
+
+    const preusers = await PreUser.find();
+    res.status(200).json(preusers);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
@@ -85,7 +120,7 @@ export const register = async (req, res) => {
       viewedProfile: 0,
       impressions: 0,
     });
-    preUser.delete();
+    //preUser.delete();
     const savedUser = await newUser.save();
     res.status(201).json(savedUser);
   } catch (err) {

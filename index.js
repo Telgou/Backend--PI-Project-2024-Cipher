@@ -19,7 +19,7 @@ import { createPost } from "./controllers/posts.js";
 import { createActivity } from "./controllers/Activity.js";
 import { verifyToken } from "./middleware/auth.js";
 import { restrict } from "./middleware/role-authorize.js";
-import User from "./models/User.js";
+import {User} from "./models/User.js";
 import Post from "./models/Post.js";
 import { users, posts } from "./data/index.js";
 import { createGroup } from "./controllers/group.js";
@@ -51,7 +51,7 @@ const upload = multer({ storage });
 
 /* ROUTES WITH FILES */
 app.post("/auth/register", upload.single("picture"), register);
-app.post("/posts", verifyToken, upload.single("picture"), createPost);
+app.post("/addpost", verifyToken, upload.single("picture"), createPost);
 //app.post('/posts', verifyToken, restrict('admin'), upload.single('picture'), createPost);
 
 app.post("/activity", verifyToken, upload.single("picture"), createActivity);
@@ -61,7 +61,7 @@ app.post("/addgroup", createGroup);
 
 /* ROUTES */
 app.use("/auth", authRoutes);
-app.use("/users", verifyToken, userRoutes);
+app.use("/users", userRoutes);
 app.use("/posts", postRoutes);
 
 app.use("/activity", activityRoutes);

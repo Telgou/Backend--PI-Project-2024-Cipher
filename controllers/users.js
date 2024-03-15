@@ -1,13 +1,14 @@
-import User from "../models/User.js";
+import Post from "../models/Post.js";
+import { User } from "../models/User.js";
 
 /* READ */
 export const getUsers = async (req, res) => {
-  try {
-    const user = await User.find();
-    res.status(200).json(user);
-  } catch (err) {
-    res.status(404).json({ message: err.message });
-  }
+    try {
+        const user = await User.find();
+        res.status(200).json(user);
+    } catch (err) {
+        res.status(404).json({ message: err.message });
+    }
 };
 
 export const getUser = async (req, res) => {
@@ -40,13 +41,48 @@ export const getUserFriends = async (req, res) => {
 };
 
 /* UPDATE */
+export const updateUser = async (req, res) => {
+    try {
+        const { firstName, lastName, picturePath, occupation, location } = req.body;
+
+        const params = req.params;
+        console.log(params)
+        const user = await User.findById({ _id: params.id });
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        if (firstName) user.firstName = firstName;
+        if (lastName) user.lastName = lastName;
+        if (picturePath) user.picturePath = picturePath;
+        if (occupation) user.occupation = occupation;
+        if (location) user.location = location;
+
+        await user.save();
+        const oldposts = await Post.find({ userId: user._id });
+        oldposts.forEach(async (post) => {
+            post.userPicturePath = user.picturePath;
+            post.firstName= user.firstName;
+            post.lastName= user.lastName;
+            post.location= user.location;
+            await post.save();
+        })
+
+        res.status(200).json({ message: 'User information updated successfully', user: user });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Server Error' });
+    }
+};
+
 export const addRemoveFriend = async (req, res) => {
     try {
         const { id, friendId } = req.params;
         const user = await User.findById(id);
         const friend = await User.findById(friendId);
 
-        console.log(friendId, "your id : ", id, " you are", friendId !== id)
+        console.log(friendId, "your id : ", id, " you are", friendId === id)
         if (user.friends.includes(friendId)) {
             user.friends = user.friends.filter((id) => id !== friendId);
             friend.friends = friend.friends.filter((id) => id !== id);

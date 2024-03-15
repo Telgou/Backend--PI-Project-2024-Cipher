@@ -1,12 +1,16 @@
 import express from "express";
-import { login, pregister } from "../controllers/auth.js";
+import { deletePreUser, getPreUsers, login, pregister, verifyuser } from "../controllers/auth.js";
 import { verifyToken } from "../middleware/auth.js";
 import { restrict } from "../middleware/role-authorize.js";
 
 const router = express.Router();
 
-router.post("/pregister", pregister);
 router.post("/login", login);
-router.post("/verifyuser", verifyToken,restrict('admin','coordinator','dephead'));
+
+// PREREGISTRATION
+router.post("/pregister", pregister);
+router.put("/verifyuser/:email/:valid", verifyToken, restrict('admin', 'coordinator', 'dephead'), verifyuser);
+router.get("/preusers", verifyToken, restrict('admin', 'coordinator', 'dephead'), getPreUsers);
+router.delete("/preusers/:email/delete", verifyToken, restrict('admin', 'coordinator', 'dephead'), deletePreUser);
 
 export default router;

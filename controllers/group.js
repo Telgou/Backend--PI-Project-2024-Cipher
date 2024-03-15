@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import Group from "../models/Group.js";
-import User from "../models/User.js";
+import {User} from "../models/User.js";
 
 /* CREATE */
 export const createGroup = async (req, res) => {

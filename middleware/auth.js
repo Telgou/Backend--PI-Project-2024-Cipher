@@ -3,8 +3,10 @@ import jwt from "jsonwebtoken";
 export const verifyToken = async (req, res, next) => {
   try {
     let token = req.header("Authorization");
+    //console.log(token)
 
     if (!token) {
+      console.log("No token, authorization denied");
       return res.status(401).send("Access Denied");
     }
     if (!token.startsWith("Bearer ")) {
@@ -19,7 +21,7 @@ export const verifyToken = async (req, res, next) => {
 
     // process.env.JWT_SECRET
     const verified = jwt.verify(token, process.env.JWT_SECRET);
-    //console.log(verified)
+    console.log(verified)
 
     req.user = verified;
     req.user.role = verified.role;
