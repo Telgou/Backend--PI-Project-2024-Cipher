@@ -4,10 +4,12 @@ import {User} from "../models/User.js";
 /* CREATE */
 export const createPost = async (req, res) => {
   try {
-    const { userId, description, picturePath } = req.body;
-    const user = await User.findById(userId);
-    const newPost = new Post({
-      userId,
+    const { description, picturePath } = req.body;
+    const user = await User.findById(req.user.id);
+    //console.log(req.user.id===userId, req.user.id, userId)
+
+    {const newPost = new Post({
+      userId: req.user.id,
       firstName: user.firstName,
       lastName: user.lastName,
       location: user.location,
@@ -20,7 +22,7 @@ export const createPost = async (req, res) => {
     await newPost.save();
 
     const post = await Post.find();
-    res.status(201).json(post);
+    res.status(201).json(post);}
   } catch (err) {
     res.status(409).json({ message: err.message });
   }

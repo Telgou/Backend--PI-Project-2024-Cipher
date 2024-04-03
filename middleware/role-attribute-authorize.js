@@ -1,3 +1,4 @@
+/*
 import User from "../models/User.js";
 import { Role } from "../models/User.js";
 
@@ -31,6 +32,12 @@ export const restrict = (...role) => {
         next();
     };
 };
+*/
+
+
+
+
+
 
 /*
 interface AuthenticatedRequest extends Request {

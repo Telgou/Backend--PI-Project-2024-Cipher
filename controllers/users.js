@@ -60,6 +60,9 @@ export const updateUser = async (req, res) => {
         if (location) user.location = location;
 
         await user.save();
+
+        // Update old posts of the user
+        /*
         const oldposts = await Post.find({ userId: user._id });
         oldposts.forEach(async (post) => {
             post.userPicturePath = user.picturePath;
@@ -67,7 +70,17 @@ export const updateUser = async (req, res) => {
             post.lastName= user.lastName;
             post.location= user.location;
             await post.save();
-        })
+        })*/
+        if (picturePath || firstName || lastName || location) {
+            const updatedUserData = {
+                firstName: user.firstName,
+                lastName: user.lastName,
+                location: user.location,
+                picturePath: user.picturePath
+            };
+
+            await Post.updateUserDataInPosts(user._id, updatedUserData);
+        }
 
         res.status(200).json({ message: 'User information updated successfully', user: user });
     } catch (error) {
