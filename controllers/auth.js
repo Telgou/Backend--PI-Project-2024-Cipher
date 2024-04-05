@@ -23,13 +23,13 @@ export const pregister = async (req, res) => {
     await savedPreUser.save();
 
     // Send an email with the token to the user
-    /*const mailOptions = {
+    const mailOptions = {
       from: "gamgamitelgou@gmail.com",
       to: email,
       subject: "Registration Token",
       text: `Kindly continue to : http://localhost:3000/tok=${token} and complete the registration`,
     };
-    await sendTokenEmail(email, token,mailOptions);*/
+    await sendTokenEmail(email, token,mailOptions);
     console.log(token);
 
     res.status(201).json("pregistered correctly");
@@ -39,7 +39,7 @@ export const pregister = async (req, res) => {
   }
 };
 
-/* PREREGISTRATION  Verifying */
+/* PREREGISTRATION  Verifying - getting preusers - deleting preusers */
 export const getPreUsers = async (req, res) => {
   try {
     const user = await PreUser.find();
@@ -163,147 +163,6 @@ export const login = async (req, res) => {
 };
 
 // Request privilege upgrade
-/*
-export const transferUser = async (req, res) => {
-  const departments = await Department.find({}, { name: 1, _id: 0 });
-  const departmentNames = departments.map(department => department.name);
-
-  const UPs = await PedagogicalUnit.find({}, { name: 1, _id: 0 });
-  const UPNames = UPs.map(up => up.name);
-
-  const { userid, dep, UP } = req.body;
-
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
-  try {
-    const user = await User.findById(userid).session(session);
-    if (!user) {
-      throw new Error('User not found');
-    }
-    let newP;
-    // Department Transfer
-    if (dep && departmentNames.includes(dep)) {
-      const department = await Department.findOne({ name: dep });
-      const oldHead = await DepHead.findById(department.depHead);
-      //console.log(user._id,oldHead._id)
-      //console.log(user._id.toString() !== oldHead._id.toString())
-      if (oldHead && user._id.toString() !== oldHead._id.toString()) await demoteExistingHead(dep, session);
-      newP = await promoteUserToHead(user, dep, session);
-    }
-
-    // UP Transfer
-    if (UP && UPNames.includes(UP)) {
-      const up = await UPs.findOne({ name: dep });
-      const oldCoordinator = await UPs.findById(UPs.corrdinator);
-      //console.log(user._id,oldHead._id)
-      //console.log(user._id.toString() !== oldHead._id.toString())
-      if (oldCoordinator && user._id.toString() !== oldCoordinator._id.toString()) await demoteExistingCoordinator(UP, session);
-      const newP = await promoteUserToCoordinator(user, UP, session);
-    }
-
-    await session.commitTransaction();
-    await user.save();
-    res.status(200).json({ newP });
-
-  } catch (error) {
-    console.error("Error transferring user:", error);
-    await session.abortTransaction(); // Rollback
-    throw error; // re-throwing error UP the call stack
-  } finally {
-    session.endSession();
-  }
-}
-
-async function demoteExistingHead(departmentName) {
-  const department = await Department.findOne({ name: departmentName });
-  if (department && department.depHead) {
-    const oldHead = await User.findById(department.depHead);
-    await DepHead.deleteOne({ email: oldHead.email });
-    await new User({
-      _id: oldHead._id,
-      firstName: oldHead.firstName,
-      lastName: oldHead.lastName,
-      email: oldHead.email,
-      password: oldHead.password,
-      picturePath: oldHead.picturePath,
-      friends: oldHead.friends,
-      occupation: oldHead.occupation,
-      location: oldHead.location,
-      viewedProfile: oldHead.viewedProfile,
-      impressions: oldHead.impressions,
-      role: 'prof'
-    }).save();
-    department.depHead = null; // Clear depHead in department
-    await department.save();
-  }
-}
-
-async function promoteUserToHead(user, departmentName) {
-  const department = await Department.findOne({ name: departmentName });
-  const depHead = await DepHead.findOne({ _id: user._id });
-  //console.log(department,depHead)
-  if (!depHead) {
-    await User.deleteOne({ email: user.email })
-    //console.log(User.findById(user._id))
-    await new DepHead({
-      _id: user._id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      password: user.password,
-      picturePath: user.picturePath,
-      friends: user.friends,
-      occupation: user.occupation,
-      location: user.location,
-      viewedProfile: user.viewedProfile,
-      impressions: user.impressions,
-      department: departmentName,
-      role: 'depHead'
-    }).save();
-  } else {
-    if (departmentName !== depHead.department) {
-      const olddep = await Department.findOne({ name: depHead.department });
-      olddep.depHead = null;
-      olddep.save();
-    }
-    depHead.department = departmentName;
-    await depHead.save();
-  }
-  department.depHead = user._id;
-  await department.save();
-  //console.log(depHead);
-  await depHead.save();
-  //console.log(user)
-}
-
-async function demoteExistingCoordinator(upName) {
-  const UP = await PedagogicalUnit.findOne({ name: upName });
-  if (UP && UP.coordinator) {
-    const oldCoordinator = await User.findById(UP.coordinator);
-    oldCoordinator.role = 'prof';
-    await oldCoordinator.save();
-    UP.coordinator = null; // Clear coordinator in UP
-    await UP.save();
-  }
-}
-
-async function promoteUserToCoordinator(user, upName) {
-  const UP = await PedagogicalUnit.findOne({ name: upName });
-  const coordinator = await Coordinator.findOne({ _id: user._id });
-  if (!coordinator) {
-    await new Coordinator({ _id: user._id, UP: upName }).save();
-  } else {
-    coordinator.UP = upName;
-    await coordinator.save();
-  }
-  user.role = 'coordinator';
-  if (UP) {
-    UP.coordinator = user._id;
-    await UP.save();
-  }
-}
-*/
 
 // Forgot Password
 export const forgotpassword = async (req, res) => {
@@ -332,7 +191,7 @@ export const forgotpassword = async (req, res) => {
       `,
     };
 
-    //await sendTokenEmail(email, token, mailOptions);
+    await sendTokenEmail(email, token, mailOptions);
     console.log(token)
     return res.status(200).json({ message: 'Password reset email sent. Check your inbox.' });
   } catch (err) {
@@ -435,24 +294,39 @@ export const transferUser = async (req, res) => {
 
   const { userid, dep, UP } = req.body;
 
+  console.log(userid, dep, UP)
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
     const user = await User.findById(userid).session(session);
+
+    if (req.user.role=='depHead' && dep) res.status(400).json({ msg: 'Not allowed' });
+
+    if (user && !UP && !dep) demotetoprof(user);
+
     if (!user || ((UP !== undefined && !UPNames.includes(UP)) || (dep !== undefined && !departmentNames.includes(dep)))) {
       console.log(UP === undefined, UPNames.includes(UP), (UP !== undefined && !UPNames.includes(UP)))
-      return res.status(404).json({ "message": "NOT FOUND" });
+      console.log((dep !== undefined && !departmentNames.includes(dep)), dep !== undefined, !departmentNames.includes(dep))
+      return res.status(404).json({ /*"message": "NOT FOUND"*/ });
     }
     let newP;
-    console.log((dep && departmentNames.includes(dep) && !(user.department)))
+    //console.log((dep && departmentNames.includes(dep) && !(user.department)))
+
     if ((dep !== undefined && user.department == dep) || (UP !== undefined && user.UP == UP)) {
       return res.status(201).json({ message: 'User is already in the same position' });
     }
+
+    const PositionModel = dep ? await getPositionModel('depHead') : await getPositionModel('coordinator')
     // Department Transfer
     if (dep && departmentNames.includes(dep)) {
       const department = await Department.findOne({ name: dep });
-      const oldHead = await (await getPositionModel('depHead')).findById(department.depHead);
-      if (oldHead && user._id.toString() !== oldHead._id.toString()) await demoteExistingRole('depHead', dep, session);
+      console.log("model", PositionModel, " and dephead id = ", department.depHead);
+      let oldHead;
+      oldHead = await PositionModel.findById(department.depHead);
+      console.log(oldHead);
+      if (oldHead) {
+        if (user._id.toString() !== oldHead._id.toString()) await demoteExistingRole('depHead', dep, session);
+      }
       newP = await promoteUserToRole(user, 'depHead', dep, session);
     }
 
@@ -461,19 +335,22 @@ export const transferUser = async (req, res) => {
       const up = await PedagogicalUnit.findOne({ name: UP });
       console.log(up.coordinator)
       let oldCoordinator;
-      if (up.coordinator) { oldCoordinator = (await getPositionModel('coordinator').findById(up.coordinator)) };
-      if (oldCoordinator && user._id.toString() !== oldCoordinator._id.toString()) await demoteExistingRole('coordinator', UP, session);
+      oldCoordinator = await PositionModel.findById(up.coordinator)
+      if (oldCoordinator) {
+        if (user._id.toString() !== oldCoordinator._id.toString()) await demoteExistingRole('coordinator', UP, session);
+      }
       newP = await promoteUserToRole(user, 'coordinator', UP, session);
     }
-
+    console.log('committing transaction')
     await session.commitTransaction();
-    await user.save();
+    console.log('COMMITTED')
     res.status(200).json({ newP });
 
   } catch (error) {
-    console.error("Error transferring user:", error);
+    console.log("Error transferring user:", error);
     await session.abortTransaction(); // Rollback
-    throw error; // re-throwing error UP the call stack
+    res.status(500).json({ error: err.message });
+    //throw error;
   } finally {
     session.endSession();
   }
@@ -495,6 +372,7 @@ async function demoteExistingRole(role, entityName, session) {
   const instance = await entity.findOne({ name: entityName });
 
   if (instance && instance[role]) {
+    console.log("deleting old head/coord")
     const oldUser = await PositionModel.findById(instance[role]);
     await User.deleteOne({ email: oldUser.email });
     await new User({
@@ -511,8 +389,9 @@ async function demoteExistingRole(role, entityName, session) {
       impressions: oldUser.impressions,
       role: 'prof'
     }).save();
-    instance[role] = null; // Clear role in entity
+    instance[role] = null;
     await instance.save();
+    console.log("demoting done")
   }
 }
 
@@ -521,10 +400,29 @@ async function promoteUserToRole(user, role, entityName, session) {
   const entity = role === 'depHead' ? Department : PedagogicalUnit;
   const attribut = role === 'depHead' ? 'department' : 'UP';
   const instance = await entity.findOne({ name: entityName });
+  console.log(PositionModel)
+  console.log(entity)
+  console.log(instance)
+
   const currentRole = await PositionModel.findOne({ _id: user._id });
 
   if (!currentRole) {
+    console.log("User doesn't have current role.");
     await User.deleteOne({ email: user.email });
+
+    // Setting old entity position to null
+    if (user.department) {
+      const oldEntity = await Department.findOne({ name: user.department });
+      console.log("Old Entity:", oldEntity);
+      oldEntity.depHead = null;
+      oldEntity.save();
+    } else if (user.UP) {
+      const oldEntity = await PedagogicalUnit.findOne({ name: user.UP });
+      console.log("Old Entity:", oldEntity);
+      oldEntity.coordinator = null;
+      oldEntity.save();
+    }
+
     const newPosition = new PositionModel({
       _id: user._id,
       firstName: user.firstName,
@@ -539,6 +437,7 @@ async function promoteUserToRole(user, role, entityName, session) {
       impressions: user.impressions,
       role: role === 'depHead' ? 'depHead' : 'coordinator'
     });
+    console.log("New position created:", newPosition);
 
     // Set department or UP based on the role
     if (role === 'depHead') {
@@ -549,17 +448,46 @@ async function promoteUserToRole(user, role, entityName, session) {
 
     await newPosition.save();
   } else {
+    console.log("User has current role. Updating...");
     if (entityName !== currentRole[attribut]) {
       const oldEntity = await entity.findOne({ name: currentRole[attribut] });
-      console.log(oldEntity)
+      console.log("Old Entity:", oldEntity);
       oldEntity[role] = null;
       oldEntity.save();
+      console.log("Old entity saved with role cleared");
     }
     currentRole[attribut] = entityName;
     await currentRole.save();
+    console.log("Current role updated successfully");
   }
   instance[role] = user._id;
   await instance.save();
+  console.log("Instance updated with user's new role");
   await user.save();
+  console.log("User updated with new role");
+
   return instance;
+}
+
+
+async function demotetoprof(user) {
+  await User.deleteOne({ email: user.email });
+  const newPosition = new User({
+    _id: user._id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    password: user.password,
+    picturePath: user.picturePath,
+    friends: user.friends,
+    occupation: user.occupation,
+    location: user.location,
+    viewedProfile: user.viewedProfile,
+    impressions: user.impressions,
+    role : 'prof'
+  });
+  console.log("Demoted to normal prof :", newPosition);
+  await newPosition.save();
+
+  return newPosition;
 }

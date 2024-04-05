@@ -9,13 +9,13 @@ const DepartmentSchema = new mongoose.Schema({
     },
     depHead: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User' // Reference to the depHead user
+        ref: 'User'
     }
 });
 const Department = mongoose.model('Department', DepartmentSchema);
 
 /*
-const initialDepartments = ['Computer Science', 'Physics', 'Biology', 'Mathematics'];
+const initialDepartments = ['Informatique', 'Business', 'Mecanique', 'Mathematics'];
 
 initialDepartments.forEach(async (name) => {
   try {
@@ -35,7 +35,7 @@ const PedagogicalUnitSchema = new mongoose.Schema({
     },
     coordinator: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User' // Reference to the coordinator user
+        ref: 'User'
     }
 });
 const PedagogicalUnit = mongoose.model('PedagogicalUnit', PedagogicalUnitSchema);

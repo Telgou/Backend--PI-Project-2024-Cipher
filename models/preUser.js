@@ -5,14 +5,15 @@ const PreUserSchema = new mongoose.Schema(
     email: {
       type: String,
       required: true,
-      max: 50,
+      maxlength: 50,
       unique: true,
-      /*validate: {
+      match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+      validate: {
         validator: function (value) {
           return value.endsWith("@esprit.tn");
         },
         message: props => `${props.value} is not a valid email, it must end with "@esprit.tn"`,
-      },*/
+      },
     },
     token: {
       type: String,

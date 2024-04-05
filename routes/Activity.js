@@ -5,7 +5,7 @@ import { verifyToken } from "../middleware/auth.js";
 const router = express.Router();
 
 /* READ */
-router.get("/get", verifyToken, getActivities);
+router.get("/get", getActivities);
 router.delete('/remove/:id', deleteActivity);
 router.put('/update/:id', updateActivity);
 // router.get("/:userId/posts", verifyToken, getUserPosts);

@@ -10,6 +10,43 @@ export const getUsers = async (req, res) => {
         res.status(404).json({ message: err.message });
     }
 };
+/*
+export const getLessPrivUsers = async (req, res) => {
+    try {
+        const requester = ;
+        const user = await User.find();
+        res.status(200).json(user);
+    } catch (err) {
+        res.status(404).json({ message: err.message });
+    }
+};
+*/
+export const getLessPrivUsers = async (req, res) => {
+    try {
+        const requesterRole = req.user.role;
+        let users;
+        let lesserRoles = [];
+        switch (requesterRole) {
+            case 'admin':
+                lesserRoles = ['depHead', 'coordinator', 'prof'];
+                break;
+            case 'depHead':
+                lesserRoles = ['coordinator', 'prof'];
+                break;
+            case 'coordinator':
+                lesserRoles = ['prof'];
+                break;
+            default:
+                lesserRoles = [];
+                break;
+        }
+
+        users = await User.find({ role: { $in: lesserRoles } });
+        res.status(200).json(users);
+    } catch (err) {
+        res.status(404).json({ message: err.message });
+    }
+};
 
 export const getUser = async (req, res) => {
     try {
@@ -82,6 +119,7 @@ export const updateUser = async (req, res) => {
             await Post.updateUserDataInPosts(user._id, updatedUserData);
         }
 
+        user.password=null;
         res.status(200).json({ message: 'User information updated successfully', user: user });
     } catch (error) {
         console.error(error);

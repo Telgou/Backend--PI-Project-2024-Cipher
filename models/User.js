@@ -5,25 +5,28 @@ const UserSchema = new mongoose.Schema(
     firstName: {
       type: String,
       required: true,
-      min: 2,
-      max: 50,
+      minlength: 2,
+      maxlength: 50,
+      match: /^[a-zA-Z]+$/,
     },
     lastName: {
       type: String,
       required: true,
-      min: 2,
-      max: 50,
+      minlength: 2,
+      maxlength: 50,
+      match: /^[a-zA-Z]+$/,
     },
     email: {
       type: String,
       required: true,
-      max: 50,
+      maxlength: 50,
       unique: true,
+      match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
     },
     password: {
       type: String,
       required: true,
-      min: 5,
+      minlength: 5,
     },
     picturePath: {
       type: String,
@@ -34,19 +37,6 @@ const UserSchema = new mongoose.Schema(
       default: [],
     },
     occupation: String,
-    /*role: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Role',
-      required: true
-    },*/
-
-    /*role: {
-      type: String,
-
-      enum: ['admin', 'prof', 'coordinator', 'dephead'],
-
-      default: 'prof',
-    },*/
     role :{ type : String, default : 'prof'},
     score: {
       type: Map,
@@ -73,17 +63,4 @@ const Admin = User.discriminator('admin', new mongoose.Schema({
   //adminPrivileges: [String]
 }));
 
-// Roles Schemas
-const roleSchema = new mongoose.Schema({
-  name: { type: String, required: true, unique: true },
-  //permissions: [permissionSchema]
-});
-const Role = mongoose.model("Role", roleSchema);
-
-// Permissions Schema
-const permissionSchema = new mongoose.Schema({
-  action: { type: String, required: true },
-  resource: { type: String, required: true },
-  //attributes: { type: Object } // For attribute-based conditions
-});
-export { User, Role, Coordinator, DepHead, Admin }; 
+export { User, Coordinator, DepHead, Admin }; 

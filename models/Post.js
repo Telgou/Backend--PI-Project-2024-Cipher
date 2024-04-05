@@ -14,7 +14,10 @@ const postSchema = mongoose.Schema(
       required: true,
     },
     location: String,
-    description: String,
+    description: {
+      type: String,
+      minlength: 1
+    },
     picturePath: String,
     userPicturePath: String,
     likes: {
@@ -32,9 +35,9 @@ const postSchema = mongoose.Schema(
 postSchema.index({ createdAt: -1 });
 
 // Function we use to update userPicturePath in all posts when a user updates their profile picture
-postSchema.statics.updateUserDataInPosts = async function(userId, updatedUserData) {
+postSchema.statics.updateUserDataInPosts = async function (userId, updatedUserData) {
   try {
-    await this.updateMany({ userId }, { 
+    await this.updateMany({ userId }, {
       firstName: updatedUserData.firstName,
       lastName: updatedUserData.lastName,
       location: updatedUserData.location,

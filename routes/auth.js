@@ -10,13 +10,13 @@ router.post("/login", login);
 
 // PREREGISTRATION
 router.post("/pregister", pregister);
-router.put("/verifyuser/:email/:valid", verifyToken, restrict('admin', 'coordinator', 'dephead'), verifyuser);
-router.get("/preusers", verifyToken, restrict('admin', 'coordinator', 'dephead'), getPreUsers);
-router.delete("/preusers/:email/delete", verifyToken, restrict('admin', 'coordinator', 'dephead'), deletePreUser);
+router.put("/verifyuser/:email/:valid", verifyToken, restrict('admin', 'coordinator', 'depHead'), verifyuser);
+router.get("/preusers", verifyToken, restrict('admin', 'coordinator', 'depHead'), getPreUsers);
+router.delete("/preusers/:email/delete", verifyToken, restrict('admin', 'coordinator', 'depHead'), deletePreUser);
 
 router.post("/forgotpass", forgotpassword);
 router.post("/resetpass", resetpassword);
 router.post("/:id/changepass", verifyToken, checkOwnership, resetpassword);
-router.post("/promote", transferUser);
+router.post("/promote", verifyToken, restrict('admin', 'depHead'), transferUser);
 
 export default router;
