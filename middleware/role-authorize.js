@@ -17,13 +17,12 @@ export const restrict = (...role) => {
         }
 
         //const user = await User.findOne({ _id: userId });
-
         const userRoles = req.user.role;
         console.log(req.user);
 
         if (userRoles==undefined ||!userRoles || /*!userRoles.some((r) => role.includes(r))*/ !role.includes(userRoles)) {
 
-            res.status(401).json({ error: 'Your roles are not allowed to access this route' });
+            res.status(401).json({ error: 'You are not allowed to access this route' });
  
         }
         next();

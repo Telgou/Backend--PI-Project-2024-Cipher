@@ -10,6 +10,43 @@ export const getUsers = async (req, res) => {
         res.status(404).json({ message: err.message });
     }
 };
+/*
+export const getLessPrivUsers = async (req, res) => {
+    try {
+        const requester = ;
+        const user = await User.find();
+        res.status(200).json(user);
+    } catch (err) {
+        res.status(404).json({ message: err.message });
+    }
+};
+*/
+export const getLessPrivUsers = async (req, res) => {
+    try {
+        const requesterRole = req.user.role;
+        let users;
+        let lesserRoles = [];
+        switch (requesterRole) {
+            case 'admin':
+                lesserRoles = ['depHead', 'coordinator', 'prof'];
+                break;
+            case 'depHead':
+                lesserRoles = ['coordinator', 'prof'];
+                break;
+            case 'coordinator':
+                lesserRoles = ['prof'];
+                break;
+            default:
+                lesserRoles = [];
+                break;
+        }
+
+        users = await User.find({ role: { $in: lesserRoles } });
+        res.status(200).json(users);
+    } catch (err) {
+        res.status(404).json({ message: err.message });
+    }
+};
 
 export const getUser = async (req, res) => {
     try {
@@ -60,6 +97,9 @@ export const updateUser = async (req, res) => {
         if (location) user.location = location;
 
         await user.save();
+
+        // Update old posts of the user
+        /*
         const oldposts = await Post.find({ userId: user._id });
         oldposts.forEach(async (post) => {
             post.userPicturePath = user.picturePath;
@@ -67,8 +107,19 @@ export const updateUser = async (req, res) => {
             post.lastName= user.lastName;
             post.location= user.location;
             await post.save();
-        })
+        })*/
+        if (picturePath || firstName || lastName || location) {
+            const updatedUserData = {
+                firstName: user.firstName,
+                lastName: user.lastName,
+                location: user.location,
+                picturePath: user.picturePath
+            };
 
+            await Post.updateUserDataInPosts(user._id, updatedUserData);
+        }
+
+        user.password=null;
         res.status(200).json({ message: 'User information updated successfully', user: user });
     } catch (error) {
         console.error(error);

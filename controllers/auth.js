@@ -2,15 +2,16 @@ import bcrypt from "bcrypt";
 import crypto from 'crypto';
 import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
-import { Coordinator, User } from "../models/User.js";
+import mongoose from "mongoose";
+import { Coordinator, User, DepHead } from "../models/User.js";
+import { Department, PedagogicalUnit } from "../models/departments&UP.js";
 import PreUser from "../models/preUser.js";
+import ResetToken from "../models/passwordreset.js";
 
 /* Pregister USER */
 export const pregister = async (req, res) => {
   try {
-    const {
-      email,
-    } = req.body;
+    const { email, } = req.body;
     console.log(req.body)
 
     console.log(email)
@@ -22,7 +23,13 @@ export const pregister = async (req, res) => {
     await savedPreUser.save();
 
     // Send an email with the token to the user
-    //await sendTokenEmail(email, token);
+    const mailOptions = {
+      from: "gamgamitelgou@gmail.com",
+      to: email,
+      subject: "Registration Token",
+      text: `Kindly continue to : http://localhost:3000/tok=${token} and complete the registration`,
+    };
+    await sendTokenEmail(email, token,mailOptions);
     console.log(token);
 
     res.status(201).json("pregistered correctly");
@@ -32,7 +39,7 @@ export const pregister = async (req, res) => {
   }
 };
 
-/* PREREGISTRATION  Verifying */
+/* PREREGISTRATION  Verifying - getting preusers - deleting preusers */
 export const getPreUsers = async (req, res) => {
   try {
     const user = await PreUser.find();
@@ -105,6 +112,7 @@ export const register = async (req, res) => {
       return res.status(403).json({ error: "You are still unverified" });
     }
 
+    // Salting & Hashing
     const salt = await bcrypt.genSalt();
     const passwordHash = await bcrypt.hash(password, salt);
 
@@ -120,8 +128,11 @@ export const register = async (req, res) => {
       viewedProfile: 0,
       impressions: 0,
     });
+
+
     //preUser.delete();
     const savedUser = await newUser.save();
+    savedUser.password = null;
     res.status(201).json(savedUser);
   } catch (err) {
     //console.error("Register error:", err);
@@ -141,31 +152,128 @@ export const login = async (req, res) => {
 
     console.log('JWT_SECRET:', process.env.JWT_SECRET);
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET);
-    delete user.password;
+
+    user.password = null;
     res.status(200).json({ token, user });
+
   } catch (err) {
     //console.error("Login error:", err);
     res.status(500).json({ error: err.message });
   }
 };
 
+// Request privilege upgrade
 
-const sendTokenEmail = async (email, token) => {
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: "gamgamitelgou@gmail.com",
-      pass: "tmpn cjzq eyrk epjl",
-    },
-  });
+// Forgot Password
+export const forgotpassword = async (req, res) => {
+  const { email } = req.body;
 
-  const mailOptions = {
-    from: "gamgamitelgou@gmail.com",
-    to: email,
-    subject: "Registration Token",
-    text: `Kindly continue to : http://localhost:3000/tok=${token} and complete the registration`,
-  };
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      // WE do NOT reveal whether the user exists or not
+      return res.status(400).json();
+    }
+    const resetinfo = new ResetToken({ userId: user._id });
 
+    const token = crypto.randomBytes(20).toString('hex');
+    resetinfo.token = token;
+    resetinfo.createdAt = Date.now();
+    await resetinfo.save();
+
+    // our email options 
+    const mailOptions = {
+      from: "gamgamitelgou@gmail.com",
+      to: email,
+      subject: "Resetting Your Unisocialize Password",
+      text: `Kindly continue to : http://localhost:3000/tok=pass${token} to reset your password
+      If you haven't requested a password reset, please ignore this email.
+      `,
+    };
+
+    await sendTokenEmail(email, token, mailOptions);
+    console.log(token)
+    return res.status(200).json({ message: 'Password reset email sent. Check your inbox.' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+export const resetpassword = async (req, res) => {
+  const { token, password } = req.body;
+
+  try {
+    console.log(token, password)
+    const resetdata = await ResetToken.findOne({ token });
+    if (!resetdata) {
+      return res.status(400).json({ error: 'Invalid or expired token' });
+    }
+    const user = await User.findById(resetdata.userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Hashing and saving the new password
+    const salt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash(password, salt);
+    user.password = hashedPassword;
+    await user.save();
+
+    // Deleting the reset token document
+    await resetdata.delete();
+
+    return res.status(200).json({ message: 'Password reset successfully' });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Server Error' });
+  }
+};
+
+// Change Password inside profile
+const changepassword = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    // Generate a new random password
+    const randomPassword = Math.random().toString(36).slice(-8); // Generates an 8-character alphanumeric password
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
+    // Update the user's password in the database
+    const user = await User.findOneAndUpdate({ email }, { password: hashedPassword }, { new: true });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+
+    // Send the email
+    transporter.sendMail(mailOptions, function (error, info) {
+      if (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Failed to send email' });
+      } else {
+        console.log('Email sent: ' + info.response);
+        return res.status(200).json({ message: 'New password sent successfully' });
+      }
+    });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+// Send an email with the token to the user
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: "gamgamitelgou@gmail.com",
+    pass: "tmpn cjzq eyrk epjl",
+  },
+});
+
+const sendTokenEmail = async (email, token, mailOptions) => {
   await transporter.sendMail(mailOptions);
 };
 
@@ -174,3 +282,212 @@ const generateRandomToken = (length) => {
     .toString('hex')
     .slice(0, length);
 };
+
+/////////////////////
+
+export const transferUser = async (req, res) => {
+  const departments = await Department.find({}, { name: 1, _id: 0 });
+  const departmentNames = departments.map(department => department.name);
+
+  const UPs = await PedagogicalUnit.find({}, { name: 1, _id: 0 });
+  const UPNames = UPs.map(up => up.name);
+
+  const { userid, dep, UP } = req.body;
+
+  console.log(userid, dep, UP)
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const user = await User.findById(userid).session(session);
+
+    if (req.user.role=='depHead' && dep) res.status(400).json({ msg: 'Not allowed' });
+
+    if (user && !UP && !dep) demotetoprof(user);
+
+    if (!user || ((UP !== undefined && !UPNames.includes(UP)) || (dep !== undefined && !departmentNames.includes(dep)))) {
+      console.log(UP === undefined, UPNames.includes(UP), (UP !== undefined && !UPNames.includes(UP)))
+      console.log((dep !== undefined && !departmentNames.includes(dep)), dep !== undefined, !departmentNames.includes(dep))
+      return res.status(404).json({ /*"message": "NOT FOUND"*/ });
+    }
+    let newP;
+    //console.log((dep && departmentNames.includes(dep) && !(user.department)))
+
+    if ((dep !== undefined && user.department == dep) || (UP !== undefined && user.UP == UP)) {
+      return res.status(201).json({ message: 'User is already in the same position' });
+    }
+
+    const PositionModel = dep ? await getPositionModel('depHead') : await getPositionModel('coordinator')
+    // Department Transfer
+    if (dep && departmentNames.includes(dep)) {
+      const department = await Department.findOne({ name: dep });
+      console.log("model", PositionModel, " and dephead id = ", department.depHead);
+      let oldHead;
+      oldHead = await PositionModel.findById(department.depHead);
+      console.log(oldHead);
+      if (oldHead) {
+        if (user._id.toString() !== oldHead._id.toString()) await demoteExistingRole('depHead', dep, session);
+      }
+      newP = await promoteUserToRole(user, 'depHead', dep, session);
+    }
+
+    // UP Transfer
+    if (UP && UPNames.includes(UP)) {
+      const up = await PedagogicalUnit.findOne({ name: UP });
+      console.log(up.coordinator)
+      let oldCoordinator;
+      oldCoordinator = await PositionModel.findById(up.coordinator)
+      if (oldCoordinator) {
+        if (user._id.toString() !== oldCoordinator._id.toString()) await demoteExistingRole('coordinator', UP, session);
+      }
+      newP = await promoteUserToRole(user, 'coordinator', UP, session);
+    }
+    console.log('committing transaction')
+    await session.commitTransaction();
+    console.log('COMMITTED')
+    res.status(200).json({ newP });
+
+  } catch (error) {
+    console.log("Error transferring user:", error);
+    await session.abortTransaction(); // Rollback
+    res.status(500).json({ error: err.message });
+    //throw error;
+  } finally {
+    session.endSession();
+  }
+}
+
+async function getPositionModel(role) {
+  if (role === 'depHead') {
+    return DepHead;
+  } else if (role === 'coordinator') {
+    return Coordinator;
+  } else {
+    throw new Error(`Unsupported role: ${role}`);
+  }
+}
+
+async function demoteExistingRole(role, entityName, session) {
+  const PositionModel = await getPositionModel(role);
+  const entity = role === 'depHead' ? Department : PedagogicalUnit;
+  const instance = await entity.findOne({ name: entityName });
+
+  if (instance && instance[role]) {
+    console.log("deleting old head/coord")
+    const oldUser = await PositionModel.findById(instance[role]);
+    await User.deleteOne({ email: oldUser.email });
+    await new User({
+      _id: oldUser._id,
+      firstName: oldUser.firstName,
+      lastName: oldUser.lastName,
+      email: oldUser.email,
+      password: oldUser.password,
+      picturePath: oldUser.picturePath,
+      friends: oldUser.friends,
+      occupation: oldUser.occupation,
+      location: oldUser.location,
+      viewedProfile: oldUser.viewedProfile,
+      impressions: oldUser.impressions,
+      role: 'prof'
+    }).save();
+    instance[role] = null;
+    await instance.save();
+    console.log("demoting done")
+  }
+}
+
+async function promoteUserToRole(user, role, entityName, session) {
+  const PositionModel = await getPositionModel(role);
+  const entity = role === 'depHead' ? Department : PedagogicalUnit;
+  const attribut = role === 'depHead' ? 'department' : 'UP';
+  const instance = await entity.findOne({ name: entityName });
+  console.log(PositionModel)
+  console.log(entity)
+  console.log(instance)
+
+  const currentRole = await PositionModel.findOne({ _id: user._id });
+
+  if (!currentRole) {
+    console.log("User doesn't have current role.");
+    await User.deleteOne({ email: user.email });
+
+    // Setting old entity position to null
+    if (user.department) {
+      const oldEntity = await Department.findOne({ name: user.department });
+      console.log("Old Entity:", oldEntity);
+      oldEntity.depHead = null;
+      oldEntity.save();
+    } else if (user.UP) {
+      const oldEntity = await PedagogicalUnit.findOne({ name: user.UP });
+      console.log("Old Entity:", oldEntity);
+      oldEntity.coordinator = null;
+      oldEntity.save();
+    }
+
+    const newPosition = new PositionModel({
+      _id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      password: user.password,
+      picturePath: user.picturePath,
+      friends: user.friends,
+      occupation: user.occupation,
+      location: user.location,
+      viewedProfile: user.viewedProfile,
+      impressions: user.impressions,
+      role: role === 'depHead' ? 'depHead' : 'coordinator'
+    });
+    console.log("New position created:", newPosition);
+
+    // Set department or UP based on the role
+    if (role === 'depHead') {
+      newPosition.department = entityName;
+    } else if (role === 'coordinator') {
+      newPosition.UP = entityName;
+    }
+
+    await newPosition.save();
+  } else {
+    console.log("User has current role. Updating...");
+    if (entityName !== currentRole[attribut]) {
+      const oldEntity = await entity.findOne({ name: currentRole[attribut] });
+      console.log("Old Entity:", oldEntity);
+      oldEntity[role] = null;
+      oldEntity.save();
+      console.log("Old entity saved with role cleared");
+    }
+    currentRole[attribut] = entityName;
+    await currentRole.save();
+    console.log("Current role updated successfully");
+  }
+  instance[role] = user._id;
+  await instance.save();
+  console.log("Instance updated with user's new role");
+  await user.save();
+  console.log("User updated with new role");
+
+  return instance;
+}
+
+
+async function demotetoprof(user) {
+  await User.deleteOne({ email: user.email });
+  const newPosition = new User({
+    _id: user._id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    password: user.password,
+    picturePath: user.picturePath,
+    friends: user.friends,
+    occupation: user.occupation,
+    location: user.location,
+    viewedProfile: user.viewedProfile,
+    impressions: user.impressions,
+    role : 'prof'
+  });
+  console.log("Demoted to normal prof :", newPosition);
+  await newPosition.save();
+
+  return newPosition;
+}

@@ -21,7 +21,7 @@ import { verifyToken } from "./middleware/auth.js";
 import { restrict } from "./middleware/role-authorize.js";
 import {User} from "./models/User.js";
 import Post from "./models/Post.js";
-import { users, posts } from "./data/index.js";
+//import { users, posts } from "./data/index.js";
 import { createGroup } from "./controllers/group.js";
 import Group from "./models/Group.js";
 /* CONFIGURATIONS */

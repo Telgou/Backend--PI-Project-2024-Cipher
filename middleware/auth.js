@@ -21,7 +21,7 @@ export const verifyToken = async (req, res, next) => {
 
     // process.env.JWT_SECRET
     const verified = jwt.verify(token, process.env.JWT_SECRET);
-    console.log(verified)
+    //console.log(verified)
 
     req.user = verified;
     req.user.role = verified.role;
