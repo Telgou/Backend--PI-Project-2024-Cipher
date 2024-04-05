@@ -20,7 +20,7 @@ const PreUserSchema = new mongoose.Schema(
     },
     valid: {
       type: Boolean,
-      default: true,
+      default: false,
     }
   },
   { timestamps: true }

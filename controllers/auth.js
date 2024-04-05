@@ -27,9 +27,10 @@ export const pregister = async (req, res) => {
       from: "gamgamitelgou@gmail.com",
       to: email,
       subject: "Registration Token",
-      text: `Kindly continue to : http://localhost:3000/tok=${token} and complete the registration`,
+      text: `Your pre registration has been submitted, please wait until it's verified.
+      Kindly continue to : http://localhost:3000/tok=${token} and complete the registration later on.`,
     };
-    await sendTokenEmail(email, token,mailOptions);
+    await sendTokenEmail(email, mailOptions);
     console.log(token);
 
     res.status(201).json("pregistered correctly");
@@ -66,6 +67,17 @@ export const verifyuser = async (req, res) => {
     }
     preuser.valid = !preuser.valid;
     await preuser.save();
+
+    // inform per email 
+    const mailOptions = {
+      from: "gamgamitelgou@gmail.com",
+      to: email,
+      subject: "Your Unisocialize account was vrified ",
+      text: `We are glad to tell you that your account was verified, please continue your registration.`,
+    };
+
+    await sendTokenEmail(email, mailOptions);
+
 
     res.status(200).json({ verified: preuser.valid });
   } catch (err) {
@@ -130,8 +142,10 @@ export const register = async (req, res) => {
     });
 
 
-    //preUser.delete();
     const savedUser = await newUser.save();
+    // delete preuser
+    preUser.delete();
+
     savedUser.password = null;
     res.status(201).json(savedUser);
   } catch (err) {
@@ -191,7 +205,7 @@ export const forgotpassword = async (req, res) => {
       `,
     };
 
-    await sendTokenEmail(email, token, mailOptions);
+    await sendTokenEmail(email, mailOptions);
     console.log(token)
     return res.status(200).json({ message: 'Password reset email sent. Check your inbox.' });
   } catch (err) {
@@ -269,11 +283,11 @@ const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: "gamgamitelgou@gmail.com",
-    pass: "tmpn cjzq eyrk epjl",
+    pass: "uzyt mmzk weho gsvf",
   },
 });
 
-const sendTokenEmail = async (email, token, mailOptions) => {
+const sendTokenEmail = async (email, mailOptions) => {
   await transporter.sendMail(mailOptions);
 };
 
@@ -300,7 +314,7 @@ export const transferUser = async (req, res) => {
   try {
     const user = await User.findById(userid).session(session);
 
-    if (req.user.role=='depHead' && dep) res.status(400).json({ msg: 'Not allowed' });
+    if (req.user.role == 'depHead' && dep) res.status(400).json({ msg: 'Not allowed' });
 
     if (user && !UP && !dep) demotetoprof(user);
 
@@ -484,7 +498,7 @@ async function demotetoprof(user) {
     location: user.location,
     viewedProfile: user.viewedProfile,
     impressions: user.impressions,
-    role : 'prof'
+    role: 'prof'
   });
   console.log("Demoted to normal prof :", newPosition);
   await newPosition.save();
