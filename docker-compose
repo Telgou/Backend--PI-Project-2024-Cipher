@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  db:
+    image: mongo:4.2
+    container_name: db
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    ports:
+      - 27017:27017
+    volumes:
+      - mongo-data:/data/db  
+  
+  app:
+    build: .
+    image: telgou/frontunisocialize:latest
+    restart: always
+    container_name: backendexpress
+    ports:
+      - '3000:3000'
+    depends_on:
+      - db
+  
+volumes:
+  mongo-data:
