@@ -35,6 +35,7 @@ pipeline {
                         docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
                         def customImage = docker.build("frontunisocialize:latest")
                         customImage.push()
+                        }
                         
                     }
             }
