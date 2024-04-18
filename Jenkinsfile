@@ -33,7 +33,7 @@ pipeline {
                     script {
                         
                         docker.withRegistry('https://registry.hub.docker.com', 'dockerhub-telgoudelou') {
-                        def customImage = docker.build("frontunisocialize:latest")
+                        def customImage = docker.build("telgoudelou/frontunisocialize:latest")
                         customImage.push()
                         }
                         
