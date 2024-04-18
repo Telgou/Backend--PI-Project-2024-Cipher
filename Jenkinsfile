@@ -31,11 +31,10 @@ pipeline {
         stage('Build Image & push to DockerHub') {
             steps {
                     script {
-                        sh 'docker build -t frontunisocialize .'
                         
-                        docker.withRegistry('https://registry.hub.docker.com', 'dockerhub2') {
-                            def image = docker.image('frontunisocialize').push('latest')
-                        }
+                        docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
+                        def customImage = docker.build("frontunisocialize:latest")
+                        customImage.push()
                         
                     }
             }
