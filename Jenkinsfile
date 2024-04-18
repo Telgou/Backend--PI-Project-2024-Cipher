@@ -32,7 +32,7 @@ pipeline {
             steps {
                     script {
                         
-                        docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
+                        docker.withRegistry('https://registry.hub.docker.com', 'dockerhub_id') {
                         def customImage = docker.build("frontunisocialize:latest")
                         customImage.push()
                         }
