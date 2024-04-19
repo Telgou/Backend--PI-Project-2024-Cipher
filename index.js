@@ -78,10 +78,6 @@ mongoose
   .connect(mongoport, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    auth: {
-      username: 'root',
-      password: 'root' 
-  } 
   })
   .then(() => {
     app.listen(PORT, () => console.log(`Server Port: ${PORT}`));
