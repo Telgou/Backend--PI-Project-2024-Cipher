@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  db:
+    image: mongo:4.2
+    container_name: db
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    ports:
+      - 27017:27017
+    networks:
+      - app-network 
+    volumes:
+      - mongo-data:/data/db  
+  
+  app:
+    build: .
+    image: telgoudelou/backunisocialize:latest
+    restart: always
+    container_name: backendexpress
+    ports:
+      - '3000:3000'
+    environment:
+      - MONGO_URI=mongodb://root:root@db:27017/snu
+      - JWT_SECRET
+    networks:
+      - app-network 
+    depends_on:
+      - db
+  
+networks:
+  app-network:
+
+volumes:
+  mongo-data:
