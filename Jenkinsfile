@@ -42,7 +42,7 @@ pipeline {
             }
         }
 
-        stage('Docker compose (BackEnd MySql FrontEnd)') {
+        stage('Docker compose (BackEnd Mongodb FrontEnd)') {
             steps {
                 script {
                   
