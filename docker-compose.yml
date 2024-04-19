@@ -20,6 +20,8 @@ services:
     container_name: backendexpress
     ports:
       - '3000:3000'
+    environment:
+      - MONGO_URI=mongodb://root:root@db:27017/<snu>
     depends_on:
       - db
   
