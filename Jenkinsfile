@@ -3,6 +3,7 @@ pipeline {
     environment {
         GIT_REPO = 'git@github.com:Telgou/Frontend--PI-Project-2024-Cipher.git'
         GIT_CREDENTIALS_ID = 'cipher-frontend'
+        JWT_SECRET = credentials('JWT_SECRET') 
     }
     stages {
         /*stage('Clone') {
@@ -45,7 +46,7 @@ pipeline {
             steps {
                 script {
                   
-                        sh 'docker-compose up -d'
+                        sh "JWT_SECRET=$JWT_SECRET docker-compose up -d"
                   
                 }
             }
