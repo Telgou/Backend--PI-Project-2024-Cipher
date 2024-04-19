@@ -15,7 +15,7 @@ services:
   
   app:
     build: .
-    image: telgoudelou/frontunisocialize:latest
+    image: telgoudelou/backunisocialize:latest
     restart: always
     container_name: backendexpress
     ports:
