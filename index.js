@@ -79,9 +79,9 @@ mongoose
     useNewUrlParser: true,
     useUnifiedTopology: true,
     auth: {
-      user: 'root',  
+      username: 'root',
       password: 'root' 
-  }
+  } 
   })
   .then(() => {
     app.listen(PORT, () => console.log(`Server Port: ${PORT}`));
