@@ -72,7 +72,7 @@ app.use("/groups", groupeRoutes)
 
 /* MONGOOSE SETUP */
 const PORT = process.env.PORT || 3001;
-const mongoport = process.env.MONGO_URL || 'mongodb://localhost:27017/snu'
+const mongoport = process.env.MONGO_URI || 'mongodb://localhost:27017/snu'
 console.log(mongoport);
 mongoose
   .connect(mongoport, {
