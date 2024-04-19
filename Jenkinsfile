@@ -46,8 +46,10 @@ pipeline {
             steps {
                 script {
                   
-                        sh "JWT_SECRET=$JWT_SECRET docker-compose up -d"
-                  
+                        sh '''
+                        export JWT_SECRET=$JWT_SECRET
+                        docker-compose up -d
+                        '''
                 }
             }
         }
