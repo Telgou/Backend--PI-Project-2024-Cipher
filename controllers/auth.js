@@ -30,7 +30,7 @@ export const pregister = async (req, res) => {
       text: `Your pre registration has been submitted, please wait until it's verified.
       Kindly continue to : http://localhost:3000/tok=${token} and complete the registration later on.`,
     };
-    await sendTokenEmail(email, mailOptions);
+    //await sendTokenEmail(email, mailOptions);
     console.log(token);
 
     res.status(201).json("pregistered correctly");
