@@ -22,6 +22,25 @@ export const createGroup = async (req, res) => {
 };
 
 /* READ */
+export const getGroupsByUserId = async (req, res) => {
+  try {
+    const userId = req.userId;
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const groups = await Group.find({ "members.userId": userId });
+
+    res.status(200).json(groups);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
 export const getGroups = async (req, res) => {
   try {
     const group = await Group.find();
@@ -44,12 +63,21 @@ export const getGroupsID = async (req, res) => {
 /* UPDATE */
 export const updateGroup = async (req, res) => {
   const { groupId } = req.params;
+<<<<<<< Updated upstream
   const { groupName, groupNumber} = req.body;
+=======
+  const { groupName, description, members } = req.body;
+>>>>>>> Stashed changes
 
   try {
+    const numMembers = members.length;
     const updatedGroup = await Group.findByIdAndUpdate(
       groupId,
+<<<<<<< Updated upstream
       { groupName, groupNumber },
+=======
+      { groupName,NumMumber: numMembers, description, members },
+>>>>>>> Stashed changes
       { new: true } // Return the modified document
     );
 

@@ -1,6 +1,7 @@
 import User from "../models/User.js";
 
 /* READ */
+<<<<<<< Updated upstream
 export const getUser = async (req, res) => {
   try {
     const { id } = req.params;
@@ -10,6 +11,51 @@ export const getUser = async (req, res) => {
     res.status(404).json({ message: err.message });
   }
 };
+=======
+export const getUsers = async (req, res) => {
+    try {
+      const user = await User.find();
+      res.status(200).json(user);
+    } catch (err) {
+      res.status(404).json({ message: err.message });
+    }
+  };
+  
+export const getAllUsers  = async (req, res) => {
+    try {
+        const users = await User.find({ _id: { $ne: req.params.id } }).select([
+          "email",
+          "username",
+          "avatarImage",
+          "_id",
+        ]);
+        return res.json(users);
+      } catch (ex) {
+        next(ex);
+      }
+    };
+    
+    export const setAvatar = async (req, res, next) => {
+        try {
+          const userId = req.params.id;
+          const avatarImage = req.body.image;
+          const userData = await User.findByIdAndUpdate(
+            userId,
+            {
+              isAvatarImageSet: true,
+              avatarImage,
+            },
+            { new: true }
+          );
+          return res.json({
+            isSet: userData.isAvatarImageSet,
+            image: userData.avatarImage,
+          });
+        } catch (ex) {
+          next(ex);
+        }
+      };
+>>>>>>> Stashed changes
 
 export const getUserFriends = async (req, res) => {
   try {

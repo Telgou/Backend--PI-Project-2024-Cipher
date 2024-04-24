@@ -17,7 +17,12 @@ export const verifyToken = async (req, res, next) => {
 
     // process.env.JWT_SECRET
     const verified = jwt.verify(token, process.env.JWT_SECRET );
+<<<<<<< Updated upstream
     req.user = verified;
+=======
+    //req.user = verified;
+    req.userId = verified.id;
+>>>>>>> Stashed changes
     next();
   } catch (err) {
     res.status(500).json({ error: err.message });

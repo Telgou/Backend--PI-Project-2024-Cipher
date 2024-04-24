@@ -2,6 +2,13 @@ import mongoose from "mongoose";
 
 const UserSchema = new mongoose.Schema(
   {
+    username: {
+      type: String,
+      required: true,
+      min: 3,
+      max: 20,
+      unique: true,
+    },
     firstName: {
       type: String,
       required: true,
@@ -25,7 +32,11 @@ const UserSchema = new mongoose.Schema(
       required: true,
       min: 5,
     },
-    picturePath: {
+    isAvatarImageSet: {
+      type: Boolean,
+      default: false,
+    },
+    avatarImage: {
       type: String,
       default: "",
     },
@@ -33,10 +44,13 @@ const UserSchema = new mongoose.Schema(
       type: Array,
       default: [],
     },
+<<<<<<< Updated upstream
     location: String,
     occupation: String,
     viewedProfile: Number,
     impressions: Number,
+=======
+>>>>>>> Stashed changes
   },
   { timestamps: true }
 );
