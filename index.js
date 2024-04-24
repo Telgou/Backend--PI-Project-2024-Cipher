@@ -22,6 +22,8 @@ import { restrict } from "./middleware/role-authorize.js";
 import {User} from "./models/User.js";
 import Post from "./models/Post.js";
 import  eventRoutes  from "./routes/events.js";
+import { Server } from "socket.io";
+
 
 //import { users, posts } from "./data/index.js";
 import { createGroup } from "./controllers/group.js";
@@ -70,7 +72,7 @@ app.use("/posts", postRoutes);
 app.use("/events", eventRoutes);
 
 app.use("/activity", activityRoutes);
-
+app.use("/api/messages", messageRoutes);
 app.use("/groups", groupeRoutes)
 
 //app.use("/events",eventRoutes)
@@ -89,3 +91,28 @@ mongoose
 
   })
   .catch((error) => console.log(`${error} did not connect`));
+
+  const server = app.listen(process.env.PORT, () =>
+console.log(`Server started on ${process.env.PORT}`)
+);
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:3000",
+    credentials: true,
+  },
+});
+
+global.onlineUsers = new Map();
+io.on("connection", (socket) => {
+  global.chatSocket = socket;
+  socket.on("add-user", (userId) => {
+    onlineUsers.set(userId, socket.id);
+  });
+
+  socket.on("send-msg", (data) => {
+    const sendUserSocket = onlineUsers.get(data.to);
+    if (sendUserSocket) {
+      socket.to(sendUserSocket).emit("msg-recieve", data.msg);
+    }
+  });
+});

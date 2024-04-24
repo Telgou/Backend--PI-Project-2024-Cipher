@@ -1,5 +1,5 @@
 import express from "express";
-import { deletePreUser, getPreUsers, login, pregister, verifyuser, transferUser, forgotpassword, resetpassword } from "../controllers/auth.js";
+import { deletePreUser, getPreUsers, login, pregister, verifyuser, transferUser, forgotpassword, resetpassword,loginn,registerr } from "../controllers/auth.js";
 import { verifyToken } from "../middleware/auth.js";
 import { restrict } from "../middleware/role-authorize.js";
 import { checkOwnership } from "../middleware/resource-ownership.js";
@@ -7,7 +7,8 @@ import { checkOwnership } from "../middleware/resource-ownership.js";
 const router = express.Router();
 
 router.post("/login", login);
-
+router.post("/loginn", loginn);
+router.post("/register", registerr);
 // PREREGISTRATION
 router.post("/pregister", pregister);
 router.put("/verifyuser/:email/:valid", verifyToken, restrict('admin', 'coordinator', 'depHead'), verifyuser);

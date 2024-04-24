@@ -24,6 +24,7 @@ export const verifyToken = async (req, res, next) => {
     //console.log(verified)
 
     req.user = verified;
+    req.userId = verified.id;
     req.user.role = verified.role;
     //req.userid = verified.id;
     next();
