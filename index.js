@@ -93,9 +93,7 @@ mongoose
   })
   .catch((error) => console.log(`${error} did not connect`));
 
-  const server = app.listen(process.env.PORT, () =>
-console.log(`Server started on ${process.env.PORT}`)
-);
+  const server = app.listen(3020);
 const io = new Server(server, {
   cors: {
     origin: "http://localhost:3000",
