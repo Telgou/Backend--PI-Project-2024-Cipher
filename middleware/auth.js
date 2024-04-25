@@ -7,7 +7,7 @@ export const verifyToken = async (req, res, next) => {
 
     if (!token) {
       console.log("No token, authorization denied");
-      return res.status(401).send("Access Denied");
+      return res.status(403).send("Access Denied");
     }
     if (!token.startsWith("Bearer ")) {
       return res.status(401).send("Invalid Token Format");
@@ -22,9 +22,8 @@ export const verifyToken = async (req, res, next) => {
     // process.env.JWT_SECRET
     const verified = jwt.verify(token, process.env.JWT_SECRET);
     //console.log(verified)
-
-    req.user = verified;
     req.userId = verified.id;
+    req.user = verified;
     req.user.role = verified.role;
     //req.userid = verified.id;
     next();
@@ -32,3 +31,5 @@ export const verifyToken = async (req, res, next) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+

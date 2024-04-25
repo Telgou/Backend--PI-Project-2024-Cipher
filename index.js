@@ -80,38 +80,40 @@ app.use("/groups", groupeRoutes)
 
 /* MONGOOSE SETUP */
 const PORT = process.env.PORT || 3001;
-const mongoport = process.env.MONGO_URI || 'mongodb://localhost:27017/snu'
+const mongoport = process.env.MONGO_URL || 'mongodb://localhost:27017/snu'
 console.log(mongoport);
 mongoose
-  .connect(mongoport, {
+  .connect(process.env.MONGO_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
   .then(() => {
-    app.listen(PORT, () => console.log(`Server Port: ${PORT}`));
+    console.log("DB Connetion Successfull");
 
   })
   .catch((error) => console.log(`${error} did not connect`));
 
-  const server = app.listen(3020);
-const io = new Server(server, {
-  cors: {
-    origin: "http://localhost:3000",
-    credentials: true,
-  },
-});
-
-global.onlineUsers = new Map();
-io.on("connection", (socket) => {
-  global.chatSocket = socket;
-  socket.on("add-user", (userId) => {
-    onlineUsers.set(userId, socket.id);
+  const server = app.listen(process.env.PORT, () =>
+  console.log(`Server started on ${process.env.PORT}`)
+  );
+  const io = new Server(server, {
+    cors: {
+      origin: "http://localhost:3000",
+      credentials: true,
+    },
   });
-
-  socket.on("send-msg", (data) => {
-    const sendUserSocket = onlineUsers.get(data.to);
-    if (sendUserSocket) {
-      socket.to(sendUserSocket).emit("msg-recieve", data.msg);
-    }
+  
+  global.onlineUsers = new Map();
+  io.on("connection", (socket) => {
+    global.chatSocket = socket;
+    socket.on("add-user", (userId) => {
+      onlineUsers.set(userId, socket.id);
+    });
+  
+    socket.on("send-msg", (data) => {
+      const sendUserSocket = onlineUsers.get(data.to);
+      if (sendUserSocket) {
+        socket.to(sendUserSocket).emit("msg-recieve", data.msg);
+      }
+    });
   });
-});

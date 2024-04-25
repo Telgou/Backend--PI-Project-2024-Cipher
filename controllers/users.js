@@ -77,6 +77,8 @@ export const getUserFriends = async (req, res) => {
     }
 };
 
+
+
 /* UPDATE */
 export const updateUser = async (req, res) => {
     try {
