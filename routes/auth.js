@@ -1,5 +1,5 @@
 import express from "express";
-import { deletePreUser, getPreUsers, login, pregister, verifyuser, transferUser, forgotpassword, resetpassword,loginn,registerr } from "../controllers/auth.js";
+import { deletePreUser, getPreUsers, login, pregister, verifyuser, transferUser, forgotpassword, resetpassword,loginn,registerr,logOut} from "../controllers/auth.js";
 import { verifyToken } from "../middleware/auth.js";
 import { restrict } from "../middleware/role-authorize.js";
 import { checkOwnership } from "../middleware/resource-ownership.js";
@@ -19,5 +19,6 @@ router.post("/forgotpass", forgotpassword);
 router.post("/resetpass", resetpassword);
 router.post("/:id/changepass", verifyToken, checkOwnership, resetpassword);
 router.post("/promote", verifyToken, restrict('admin', 'depHead'), transferUser);
+router.get("/logout/:id", logOut);
 
 export default router;

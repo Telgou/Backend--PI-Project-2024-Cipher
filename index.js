@@ -12,6 +12,7 @@ import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
 import postRoutes from "./routes/posts.js";
 import activityRoutes from "./routes/Activity.js";
+import messageRoutes from"./routes/messages.js";
 import groupeRoutes from "./routes/groups.js"
 //import eventRoutes from "./routes/events.js"
 import { register } from "./controllers/auth.js";
