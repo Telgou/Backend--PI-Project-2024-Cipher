@@ -6,6 +6,8 @@ import {
   addRemoveFriend,
   updateUser,
   getLessPrivUsers,
+  getSkills,
+  getusersbyskill,
 } from "../controllers/users.js";
 import multer from "multer";
 import { verifyToken } from "../middleware/auth.js";
@@ -26,8 +28,10 @@ const upload = multer({ storage });
 const router = express.Router();
 
 /* READ */
-router.get("/get", getUsers); // Get users
-router.get("/getlesspriv", verifyToken, restrict('admin', 'depHead'), getLessPrivUsers); // Get Less priv users
+router.get("/get", getUsers); 
+router.get("/getlesspriv", verifyToken, restrict('admin', 'depHead'), getLessPrivUsers);
+router.get("/getskills", verifyToken, getSkills);
+router.post("/getskilledusers", verifyToken, getusersbyskill);
 router.get("/:id", getUser);
 router.get("/:id/friends", getUserFriends);
 
