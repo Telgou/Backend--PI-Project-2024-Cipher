@@ -30,7 +30,7 @@ export const pregister = async (req, res) => {
       text: `Your pre registration has been submitted, please wait until it's verified.
       Kindly continue to : http://localhost:3000/tok=${token} and complete the registration later on.`,
     };
-    await sendTokenEmail(email, mailOptions);
+    //await sendTokenEmail(email, mailOptions);
     console.log(token);
 
     res.status(201).json("pregistered correctly");
@@ -98,6 +98,46 @@ export const deletePreUser = async (req, res) => {
     res.status(200).json(preusers);
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+};
+export const loginn = async (req, res, next) => {
+  try {
+    const { username, password } = req.body;
+    const user = await User.findOne({ username });
+    if (!user)
+      return res.json({ msg: "Incorrect Username or Password", status: false });
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid)
+      return res.json({ msg: "Incorrect Username or Password", status: false });
+      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+    delete user.password;
+    res.status(200).json({ token, user });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const registerr = async (req, res, next) => {
+  try {
+    const { username,firstName,lastName, email, password } = req.body;
+    const usernameCheck = await User.findOne({ username });
+    if (usernameCheck)
+      return res.json({ msg: "Username already used", status: false });
+    const emailCheck = await User.findOne({ email });
+    if (emailCheck)
+      return res.json({ msg: "Email already used", status: false });
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await User.create({
+      email,
+      firstName,
+      lastName,
+      username,
+      password: hashedPassword,
+    });
+    delete user.password;
+    return res.json({ status: true, user });
+  } catch (ex) {
+    next(ex);
   }
 };
 
@@ -517,3 +557,12 @@ async function demotetoprof(user) {
 
   return newPosition;
 }
+export const logOut = (req, res, next) => {
+  try {
+    if (!req.params.id) return res.json({ msg: "User id is required " });
+    onlineUsers.delete(req.params.id);
+    return res.status(200).send();
+  } catch (ex) {
+    next(ex);
+  }
+};

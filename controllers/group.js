@@ -5,7 +5,7 @@ import {User} from "../models/User.js";
 /* CREATE */
 export const createGroup = async (req, res) => {
   try {
-    const {groupId, groupAdminId, groupName,description,members} = req.body;
+    const { groupName,description,members} = req.body;
     const numMembers = members.length;
     const users = await User.find({_id: {$in: members.map(member => member.userId)}});
     const formattedMembers = users.map(user => ({ userId: user._id, firstName: user.firstName, lastName: user.lastName, }));
@@ -14,8 +14,6 @@ export const createGroup = async (req, res) => {
     }
     const newGroup = new Group({
       _id: new mongoose.Types.ObjectId(),
-      groupId,
-      groupAdminId,
       groupName,
       NumMumber: numMembers,
       description,
@@ -31,6 +29,26 @@ export const createGroup = async (req, res) => {
 };
 
 /* READ */
+export const getGroupsByUserId = async (req, res) => {
+  try {
+    const userId = req.userId;
+    console.log(userId);
+    const user = await User.findById(userId);
+//console.log(user);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const groups = await Group.find({ "members.userId": userId });
+    console.log(groups);
+    res.status(200).json(groups);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
 export const getGroups = async (req, res) => {
   try {
     const group = await Group.find();
@@ -53,12 +71,13 @@ export const getGroupsID = async (req, res) => {
 /* UPDATE */
 export const updateGroup = async (req, res) => {
   const { groupId } = req.params;
-  const { groupName, NumMumber, description, members } = req.body;
+  const { groupName, description, members } = req.body;
 
   try {
+    const numMembers = members.length;
     const updatedGroup = await Group.findByIdAndUpdate(
       groupId,
-      { groupName, NumMumber, description, members },
+      { groupName,NumMumber: numMembers, description, members },
       { new: true } // Return the modified document
     );
 
