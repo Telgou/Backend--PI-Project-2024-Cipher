@@ -300,65 +300,67 @@ const generateRandomToken = (length) => {
 /////////////////////
 
 export const transferUser = async (req, res) => {
+  // departments & UP list
   const departments = await Department.find({}, { name: 1, _id: 0 });
   const departmentNames = departments.map(department => department.name);
-
   const UPs = await PedagogicalUnit.find({}, { name: 1, _id: 0 });
   const UPNames = UPs.map(up => up.name);
 
   const { userid, dep, UP } = req.body;
-
   console.log(userid, dep, UP)
+
+
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
     const user = await User.findById(userid).session(session);
 
-    if (req.user.role == 'depHead' && dep) res.status(400).json({ msg: 'Not allowed' });
+    if (req.user.role == 'depHead' && dep) res.status(403).json({ msg: 'Not allowed' });
+    else {
+      if (user && !UP && !dep) demotetoprof(user);
 
-    if (user && !UP && !dep) demotetoprof(user);
-
-    if (!user || ((UP !== undefined && !UPNames.includes(UP)) || (dep !== undefined && !departmentNames.includes(dep)))) {
-      console.log(UP === undefined, UPNames.includes(UP), (UP !== undefined && !UPNames.includes(UP)))
-      console.log((dep !== undefined && !departmentNames.includes(dep)), dep !== undefined, !departmentNames.includes(dep))
-      return res.status(404).json({ /*"message": "NOT FOUND"*/ });
-    }
-    let newP;
-    //console.log((dep && departmentNames.includes(dep) && !(user.department)))
-
-    if ((dep !== undefined && user.department == dep) || (UP !== undefined && user.UP == UP)) {
-      return res.status(201).json({ message: 'User is already in the same position' });
-    }
-
-    const PositionModel = dep ? await getPositionModel('depHead') : await getPositionModel('coordinator')
-    // Department Transfer
-    if (dep && departmentNames.includes(dep)) {
-      const department = await Department.findOne({ name: dep });
-      console.log("model", PositionModel, " and dephead id = ", department.depHead);
-      let oldHead;
-      oldHead = await PositionModel.findById(department.depHead);
-      console.log(oldHead);
-      if (oldHead) {
-        if (user._id.toString() !== oldHead._id.toString()) await demoteExistingRole('depHead', dep, session);
+      if (!user || ((UP !== undefined && !UPNames.includes(UP)) || (dep !== undefined && !departmentNames.includes(dep)))) {
+        console.log(UP === undefined, UPNames.includes(UP), (UP !== undefined && !UPNames.includes(UP)))
+        console.log((dep !== undefined && !departmentNames.includes(dep)), dep !== undefined, !departmentNames.includes(dep))
+        return res.status(404).json({ /*"message": "NOT FOUND"*/ });
       }
-      newP = await promoteUserToRole(user, 'depHead', dep, session);
-    }
+      let newP;
+      //console.log((dep && departmentNames.includes(dep) && !(user.department)))
 
-    // UP Transfer
-    if (UP && UPNames.includes(UP)) {
-      const up = await PedagogicalUnit.findOne({ name: UP });
-      console.log(up.coordinator)
-      let oldCoordinator;
-      oldCoordinator = await PositionModel.findById(up.coordinator)
-      if (oldCoordinator) {
-        if (user._id.toString() !== oldCoordinator._id.toString()) await demoteExistingRole('coordinator', UP, session);
+      if ((dep !== undefined && user.department == dep) || (UP !== undefined && user.UP == UP)) {
+        return res.status(201).json({ message: 'User is already in the same position' });
       }
-      newP = await promoteUserToRole(user, 'coordinator', UP, session);
+
+      const PositionModel = dep ? await getPositionModel('depHead') : await getPositionModel('coordinator')
+      // Department Transfer
+      if (dep && departmentNames.includes(dep)) {
+        const department = await Department.findOne({ name: dep });
+        console.log("model", PositionModel, " and dephead id = ", department.depHead);
+        let oldHead;
+        oldHead = await PositionModel.findById(department.depHead);
+        console.log(oldHead);
+        if (oldHead) {
+          if (user._id.toString() !== oldHead._id.toString()) await demoteExistingRole('depHead', dep, session);
+        }
+        newP = await promoteUserToRole(user, 'depHead', dep, session);
+      }
+
+      // UP Transfer
+      if (UP && UPNames.includes(UP)) {
+        const up = await PedagogicalUnit.findOne({ name: UP });
+        console.log(up.coordinator)
+        let oldCoordinator;
+        oldCoordinator = await PositionModel.findById(up.coordinator)
+        if (oldCoordinator) {
+          if (user._id.toString() !== oldCoordinator._id.toString()) await demoteExistingRole('coordinator', UP, session);
+        }
+        newP = await promoteUserToRole(user, 'coordinator', UP, session);
+      }
+      console.log('committing transaction')
+      await session.commitTransaction();
+      console.log('COMMITTED')
+      res.status(200).json({ newP });
     }
-    console.log('committing transaction')
-    await session.commitTransaction();
-    console.log('COMMITTED')
-    res.status(200).json({ newP });
 
   } catch (error) {
     console.log("Error transferring user:", error);
@@ -486,6 +488,16 @@ async function promoteUserToRole(user, role, entityName, session) {
 
 async function demotetoprof(user) {
   await User.deleteOne({ email: user.email });
+  if (user.department) {
+    const dep = await Department.findOne({ name: user.department });
+    dep.depHead = null;
+    await dep.save();
+  }
+  if (user.UP) {
+    const up = await PedagogicalUnit.findOne({ name: user.UP });
+    up.coordinator = null;
+    await up.save();
+  }
   const newPosition = new User({
     _id: user._id,
     firstName: user.firstName,
