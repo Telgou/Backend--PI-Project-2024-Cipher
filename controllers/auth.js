@@ -350,7 +350,7 @@ export const transferUser = async (req, res) => {
 
   console.log(userid, dep, UP)
   const session = await mongoose.startSession();
-  session.startTransaction();
+  //session.startTransaction();
   try {
     const user = await User.findById(userid).session(session);
 
@@ -396,13 +396,13 @@ export const transferUser = async (req, res) => {
       newP = await promoteUserToRole(user, 'coordinator', UP, session);
     }
     console.log('committing transaction')
-    await session.commitTransaction();
+    //await session.commitTransaction();
     console.log('COMMITTED')
     res.status(200).json({ newP });
 
   } catch (error) {
     console.log("Error transferring user:", error);
-    await session.abortTransaction(); // Rollback
+    //await session.abortTransaction(); // Rollback
     res.status(500).json({ error: err.message });
     //throw error;
   } finally {
