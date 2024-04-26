@@ -1,4 +1,5 @@
 import Post from "../models/Post.js";
+import Skill from "../models/Skills.js";
 import { User } from "../models/User.js";
 
 /* READ */
@@ -77,12 +78,49 @@ export const getUserFriends = async (req, res) => {
     }
 };
 
+export const getSkills = async (req, res) => {
+    try {
+        const skills = await Skill.find();
+        //console.log(skills)
+        res.status(200).json(skills);
+    } catch (err) {
+        res.status(404).json({ message: err.message });
+    }
+};
 
+export const getusersbyskill = async (req, res) => {
+    try {
+        const { skill } = req.body;
+        console.log(req.body)
+        const users = await User.aggregate([
+            {
+                $match: {
+                    $or: [
+                        { [`score.${skill}`]: { $exists: true } },
+                        { [`initialscore.${skill}`]: { $exists: true } }
+                    ]
+                }
+            },
+            {
+                $addFields: {
+                    totalScore: { $sum: ["$score." + skill, "$initialscore." + skill] }
+                }
+            },
+            {
+                $sort: { totalScore: -1 }
+            }
+        ]);
+        console.log(users)
+        res.status(200).json(users);
+    } catch (err) {
+        res.status(404).json({ message: err.message });
+    }
+};
 
 /* UPDATE */
 export const updateUser = async (req, res) => {
     try {
-        const { firstName, lastName, picturePath, occupation, location } = req.body;
+        const { firstName, lastName, picturePath, occupation, location, github, linkedin, twitter } = req.body;
 
         const params = req.params;
         console.log(params)
@@ -97,7 +135,14 @@ export const updateUser = async (req, res) => {
         if (picturePath) user.picturePath = picturePath;
         if (occupation) user.occupation = occupation;
         if (location) user.location = location;
+        if (github != user.github && github != undefined) {
+            user.github = github;
+            await user.calculateLanguageScores();
+        }
+        if (linkedin != user.linkedin && linkedin != undefined) { user.linkedin = linkedin; }
+        if (twitter != user.twitter && twitter != undefined) { user.twitter = twitter; }
 
+        //console.log(user)
         await user.save();
 
         // Update old posts of the user
@@ -115,13 +160,14 @@ export const updateUser = async (req, res) => {
                 firstName: user.firstName,
                 lastName: user.lastName,
                 location: user.location,
-                picturePath: user.picturePath
+                occupation: user.occupation,
+                picturePath: user.picturePath,
             };
 
             await Post.updateUserDataInPosts(user._id, updatedUserData);
         }
 
-        user.password=null;
+        user.password = null;
         res.status(200).json({ message: 'User information updated successfully', user: user });
     } catch (error) {
         console.error(error);
@@ -135,7 +181,7 @@ export const addRemoveFriend = async (req, res) => {
         const user = await User.findById(id);
         const friend = await User.findById(friendId);
 
-        console.log(friendId, "your id : ", id, " you are", friendId === id)
+        console.log(friendId, "your id : ", id, "new friendid : ", " you are sameornot", friendId === id)
         if (user.friends.includes(friendId)) {
             user.friends = user.friends.filter((id) => id !== friendId);
             friend.friends = friend.friends.filter((id) => id !== id);
