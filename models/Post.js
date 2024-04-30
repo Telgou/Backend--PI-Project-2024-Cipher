@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 const postSchema = mongoose.Schema(
   {
@@ -24,10 +24,15 @@ const postSchema = mongoose.Schema(
       type: Map,
       of: Boolean,
     },
-    comments: {
-      type: Array,
-      default: [],
-    },
+    comments: [
+      {
+        userId: { type: Schema.Types.ObjectId, ref: 'User' },
+        username: String,
+        userpic: String,
+        text: { type: String, required: true },
+        createdAt: { type: Date, default: Date.now }
+      }
+    ],
   },
   { timestamps: true }
 );
@@ -43,6 +48,12 @@ postSchema.statics.updateUserDataInPosts = async function (userId, updatedUserDa
       location: updatedUserData.location,
       userPicturePath: updatedUserData.picturePath,
     });
+
+    await this.updateMany(
+      { userId },
+      { $set: { "comments.$[elem].username": `${updatedUserData.firstName}  ${updatedUserData.lastName}`, "comments.$[elem].userpic": updatedUserData.picturePath } },
+      { arrayFilters: [{ "elem.userId": userId }] }
+    );
   } catch (error) {
     throw new Error(error.message);
   }
