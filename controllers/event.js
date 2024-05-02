@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import { User } from '../models/User.js';
-import Event from "../models/Event.js";
+import Event from "../models/event.js";
 
 export const createEvent = async (req, res) => {
   try {
@@ -65,14 +65,13 @@ export const participateInEvent = async (req, res) => {
   const { eventId } = req.params;
 
   try {
-    // Vérifier si l'événement existe
     const event = await Event.findById(eventId);
     if (!event) {
       return res.status(404).json({ message: 'Event not found' });
     }
 
-    // Ajouter une participation à l'événement
-    event.participants.push("Participant");
+    // Incrémente le nombre de participants
+    event.nombreParticipants += 1;
     await event.save();
 
     res.status(200).json({ message: 'Participation successful' });

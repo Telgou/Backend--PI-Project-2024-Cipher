@@ -43,6 +43,7 @@ export const getUser = async (req, res) => {
     try {
         const { id } = req.params;
         const user = await User.findById(id);
+        user.password = null;
         res.status(200).json(user);
     } catch (err) {
         res.status(404).json({ message: err.message });
@@ -158,6 +159,7 @@ export const updateUser = async (req, res) => {
         }
 
         user.password = null;
+        console.log(user)
         res.status(200).json({ message: 'User information updated successfully', user: user });
     } catch (error) {
         console.error(error);
@@ -198,3 +200,29 @@ export const addRemoveFriend = async (req, res) => {
         res.status(404).json({ message: err.message });
     }
 };
+
+/*export const setAvatar = async (req, res, next) => {
+    try {
+      const userId = req.userId;
+      const avatarImage = req.body.image;
+      const userData = await User.findByIdAndUpdate(
+        userId,
+        {
+          isAvatarImageSet: true,
+          avatarImage,
+        },
+        { new: true }
+      );
+      console.log('User Data', userData);
+      if (!userData) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      return res.json({
+        isSet: userData.isAvatarImageSet,
+        image: userData.avatarImage,
+      });
+    } catch (error) {
+        console.error('Error setting avatar:', error);
+        return res.status(500).json({ message: 'Internal server error' });
+      }
+  };*/

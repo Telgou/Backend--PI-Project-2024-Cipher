@@ -403,7 +403,7 @@ export const transferUser = async (req, res) => {
 
 
   const session = await mongoose.startSession();
-  session.startTransaction();
+  //session.startTransaction();
   try {
     const user = await User.findById(userid).session(session);
 
@@ -453,10 +453,15 @@ export const transferUser = async (req, res) => {
       console.log('COMMITTED')
       res.status(200).json({ newP });
     }
+    console.log('committing transaction')
+    //await session.commitTransaction();
+    console.log('COMMITTED')
+    res.status(200).json({ newP });
 
   } catch (error) {
     console.log("Error transferring user:", error);
     await session.abortTransaction();
+
     res.status(500).json({ error: err.message });
     //throw error;
   } finally {
