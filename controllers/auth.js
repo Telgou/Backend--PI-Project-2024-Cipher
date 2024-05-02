@@ -30,7 +30,7 @@ export const pregister = async (req, res) => {
       text: `Your pre registration has been submitted, please wait until it's verified.
       Kindly continue to : http://localhost:3000/tok=${token} and complete the registration later on.`,
     };
-    await sendTokenEmail(email, mailOptions);
+    //await sendTokenEmail(email, mailOptions);
     console.log(token);
 
     res.status(201).json("pregistered correctly");
@@ -100,7 +100,7 @@ export const deletePreUser = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
-/*export const loginn = async (req, res, next) => {
+export const loginn = async (req, res, next) => {
   try {
     const { username, password } = req.body;
     const user = await User.findOne({ username : username });
@@ -115,9 +115,9 @@ export const deletePreUser = async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-};*/
+};
 
-/*export const registerr = async (req, res, next) => {
+export const registerr = async (req, res, next) => {
   try {
     const { username,firstName,lastName, email, password } = req.body;
     const usernameCheck = await User.findOne({ username });
@@ -139,7 +139,7 @@ export const deletePreUser = async (req, res) => {
   } catch (ex) {
     next(ex);
   }
-};*/
+};
 
 /* REGISTER USER */
 export const register = async (req, res) => {
@@ -323,7 +323,7 @@ const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: "gamgamitelgou@gmail.com",
-    pass: "gmkv kxvc ayzk flqt",
+    pass: "uzyt mmzk weho gsvf",
   },
 });
 
@@ -350,10 +350,10 @@ export const transferUser = async (req, res) => {
   console.log(userid, dep, UP)
 
 
-  //const session = await mongoose.startSession();
+  const session = await mongoose.startSession();
   //session.startTransaction();
   try {
-    const user = await User.findById(userid);//.session(session);
+    const user = await User.findById(userid).session(session);
 
     if (req.user.role == 'depHead' && dep) res.status(403).json({ msg: 'Not allowed' });
     else {
@@ -380,10 +380,9 @@ export const transferUser = async (req, res) => {
         oldHead = await PositionModel.findById(department.depHead);
         console.log(oldHead);
         if (oldHead) {
-          if (user._id.toString() !== oldHead._id.toString()) await demoteExistingRole('depHead', dep);
+          if (user._id.toString() !== oldHead._id.toString()) await demoteExistingRole('depHead', dep, session);
         }
-        //newP = 
-        await promoteUserToRole(user, 'depHead', dep);
+        newP = await promoteUserToRole(user, 'depHead', dep, session);
       }
 
       // UP Transfer
@@ -393,20 +392,19 @@ export const transferUser = async (req, res) => {
         let oldCoordinator;
         oldCoordinator = await PositionModel.findById(up.coordinator)
         if (oldCoordinator) {
-          if (user._id.toString() !== oldCoordinator._id.toString()) await demoteExistingRole('coordinator', UP);
+          if (user._id.toString() !== oldCoordinator._id.toString()) await demoteExistingRole('coordinator', UP, session);
         }
-        //newP = 
-        await promoteUserToRole(user, 'coordinator', UP);
+        newP = await promoteUserToRole(user, 'coordinator', UP, session);
       }
-      //console.log('committing transaction')
-      //await session.commitTransaction();
+      console.log('committing transaction')
+      await session.commitTransaction();
       console.log('COMMITTED')
-      //res.status(200).json({ })//newP });
+      res.status(200).json({ newP });
     }
-    //console.log('committing transaction')
+    console.log('committing transaction')
     //await session.commitTransaction();
     console.log('COMMITTED')
-    res.status(200).json({ }) //newP });
+    res.status(200).json({ newP });
 
   } catch (error) {
     console.log("Error transferring user:", error);
@@ -414,7 +412,7 @@ export const transferUser = async (req, res) => {
     res.status(500).json({ error: err.message });
     //throw error;
   } finally {
-    //session.endSession();
+    session.endSession();
   }
 }
 
@@ -428,7 +426,7 @@ async function getPositionModel(role) {
   }
 }
 
-async function demoteExistingRole(role, entityName) {
+async function demoteExistingRole(role, entityName, session) {
   const PositionModel = await getPositionModel(role);
   const entity = role === 'depHead' ? Department : PedagogicalUnit;
   const instance = await entity.findOne({ name: entityName });
@@ -457,7 +455,7 @@ async function demoteExistingRole(role, entityName) {
   }
 }
 
-async function promoteUserToRole(user, role, entityName) {
+async function promoteUserToRole(user, role, entityName, session) {
   const PositionModel = await getPositionModel(role);
   const entity = role === 'depHead' ? Department : PedagogicalUnit;
   const attribut = role === 'depHead' ? 'department' : 'UP';
