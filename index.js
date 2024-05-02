@@ -24,6 +24,7 @@ import {User} from "./models/User.js";
 import Post from "./models/Post.js";
 import  eventRoutes  from "./routes/events.js";
 import { Server } from "socket.io";
+//import Memcached from 'memcached-promisify';
 
 
 //import { users, posts } from "./data/index.js";
@@ -43,6 +44,7 @@ app.use(bodyParser.json({ limit: "30mb", extended: true }));
 app.use(bodyParser.urlencoded({ limit: "30mb", extended: true }));
 app.use(cors());
 app.use("/assets", express.static(path.join(__dirname, "public/assets")));
+//export const memcached = new Memcached('127.0.0.1:11211');
 
 /* FILE STORAGE */
 const storage = multer.diskStorage({

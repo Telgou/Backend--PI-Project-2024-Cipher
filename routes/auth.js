@@ -8,7 +8,7 @@ const router = express.Router();
 
 router.post("/login", login);
 //router.post("/loginn", loginn);
-//router.post("/registerr", registerr);
+//router.post("/register", registerr);
 // PREREGISTRATION
 router.post("/pregister", pregister);
 router.put("/verifyuser/:email/:valid", verifyToken, restrict('admin', 'coordinator', 'depHead'), verifyuser);
