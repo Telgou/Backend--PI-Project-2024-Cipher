@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
+import * as xlsx from 'xlsx';
 import { Coordinator, User, DepHead } from "../models/User.js";
 import { Department, PedagogicalUnit } from "../models/departments&UP.js";
 import PreUser from "../models/preUser.js";
@@ -33,7 +34,7 @@ export const pregister = async (req, res) => {
     //await sendTokenEmail(email, mailOptions);
     console.log(token);
 
-    res.status(201).json("pregistered correctly");
+    res.status(201).json({ msg: "pregistered correctly" });
   } catch (err) {
     console.error("preRegister error:", err);
     res.status(500).json({ error: err.message });
@@ -47,6 +48,22 @@ export const getPreUsers = async (req, res) => {
     res.status(200).json(user);
   } catch (err) {
     res.status(404).json({ message: err.message });
+  }
+};
+
+export const deletePreUser = async (req, res) => {
+  const { email } = req.params;
+  try {
+    const deletedPreUser = await PreUser.deleteOne({ email: email });
+
+    if (!deletedPreUser.deletedCount) {
+      return res.status(404).json({ message: 'PreUser not found' });
+    }
+
+    const preusers = await PreUser.find();
+    res.status(200).json(preusers);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
@@ -76,70 +93,78 @@ export const verifyuser = async (req, res) => {
       text: `We are glad to tell you that your account was verified, please continue your registration.`,
     };
 
-    await sendTokenEmail(email, mailOptions);
+    //await sendTokenEmail(email, mailOptions);
 
 
     res.status(200).json({ verified: preuser.valid });
   } catch (err) {
+    console.log(err)
     res.status(500).json({ error: err.message });
   }
 };
 
-export const deletePreUser = async (req, res) => {
-  const { email } = req.params;
-  try {
-    const deletedPreUser = await PreUser.deleteOne({ email: email });
 
-    if (!deletedPreUser.deletedCount) {
-      return res.status(404).json({ message: 'PreUser not found' });
+export const massverificationbyemail = async (req, res) => {
+  try {
+    //console.log(req.body)
+    //const { file } = xlsx.read(req.body);
+    //console.log(file)
+    const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
+
+    const emails = [];
+    const range = xlsx.utils.decode_range(sheet['!ref']);
+
+    for (let rowNum = range.s.r; rowNum <= range.e.r; rowNum++) {
+      const cellAddress = { c: 0, r: rowNum };
+      const cellRef = xlsx.utils.encode_cell(cellAddress);
+      const cell = sheet[cellRef];
+      if (cell && cell.t === 's' && emailRegex.test(cell.v)) {
+        emails.push(cell.v);
+      }
     }
 
-    const preusers = await PreUser.find();
-    res.status(200).json(preusers);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-export const loginn = async (req, res, next) => {
-  try {
-    const { username, password } = req.body;
-    const user = await User.findOne({ username : username });
-    if (!user)
-      return res.json({ msg: "Incorrect Username or Password", status: false });
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid)
-      return res.json({ msg: "Incorrect Username or Password", status: false });
-      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-    delete user.password;
-    res.status(200).json({ token, user });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
+    const verifyPromises = emails.map(async (email) => {
+      try {
+        const preuser = await PreUser.findOne({ email: email });
 
-export const registerr = async (req, res, next) => {
-  try {
-    const { username,firstName,lastName, email, password } = req.body;
-    const usernameCheck = await User.findOne({ username });
-    if (usernameCheck)
-      return res.json({ msg: "Username already used", status: false });
-    const emailCheck = await User.findOne({ email });
-    if (emailCheck)
-      return res.json({ msg: "Email already used", status: false });
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await User.create({
-      email,
-      firstName,
-      lastName,
-      username,
-      password: hashedPassword,
+        preuser.valid = !preuser.valid;
+        await preuser.save();
+
+        const mailOptions = {
+          from: "gamgamitelgou@gmail.com",
+          to: email,
+          subject: "Your Unisocialize account was vrified ",
+          text: `We are glad to tell you that your account was verified, please continue your registration.`,
+        };
+
+        //await sendTokenEmail(email, mailOptions);
+        return { status: 200, json: null }; // Indicates successful verification
+      } catch (error) {
+        console.error(`Error verifying user with email ${email}:`, error);
+        return { status: 500, json: { error: `An error occurred during verification of user with email ${email}` } }; // Indicates verification failure
+      }
     });
-    delete user.password;
-    return res.json({ status: true, user });
-  } catch (ex) {
-    next(ex);
+
+    const responses = await Promise.all(verifyPromises);
+
+    // Send responses after all promises are resolved
+    responses.forEach(({ status, json }) => {
+      if (json) {
+        res.status(status).json(json);
+      } else {
+        res.status(status).end();
+      }
+    });
+
+  } catch (error) {
+    console.error('Error occurred during email verification:', error);
+    res.status(500).json({ /*error: 'An error occurred during email verification'*/ });
   }
-};
+}
+
 
 /* REGISTER USER */
 export const register = async (req, res) => {
@@ -197,15 +222,46 @@ export const register = async (req, res) => {
 /* LOGGING IN */
 export const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, logtoken } = req.body;
+    console.log(req.body)
     const user = await User.findOne({ email: email });
     if (!user) return res.status(400).json({ msg: "User does not exist. " });
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ msg: "Invalid credentials. " });
 
+    console.log(logtoken);
+    if (logtoken != undefined) {
+      user.lastip = req.clientIP;
+      user.userAgent = req.headers['user-agent'];
+      await user.save();
+    }
+
+    const userBrowser = req.headers['user-agent'];
+    const userIpAddress = req.clientIP;
+    if (userBrowser !== user.userAgent || userIpAddress !== user.lastip) {
+      const resetinfo = new ResetToken({ userId: user._id });
+
+      const logtoken = crypto.randomBytes(20).toString('hex');
+      resetinfo.token = logtoken;
+      resetinfo.createdAt = Date.now();
+      await resetinfo.save();
+
+      const mailOptions = {
+        from: "gamgamitelgou@gmail.com",
+        to: email,
+        subject: "New login location detected",
+        text: `Kindly continue to : http://localhost:3000/tok=log${logtoken} to login.
+        `,
+      };
+
+      await sendTokenEmail(email, mailOptions);
+
+      return res.status(401).json({ msg: "New connection location detected, please check your email to continue logging in" });
+    }
+
     console.log('JWT_SECRET:', process.env.JWT_SECRET);
-    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET);
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
     user.password = null;
     res.status(200).json({ token, user });
@@ -225,7 +281,6 @@ export const forgotpassword = async (req, res) => {
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      // WE do NOT reveal whether the user exists or not
       return res.status(400).json();
     }
     const resetinfo = new ResetToken({ userId: user._id });
@@ -235,7 +290,6 @@ export const forgotpassword = async (req, res) => {
     resetinfo.createdAt = Date.now();
     await resetinfo.save();
 
-    // our email options 
     const mailOptions = {
       from: "gamgamitelgou@gmail.com",
       to: email,
@@ -268,13 +322,11 @@ export const resetpassword = async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Hashing and saving the new password
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(password, salt);
     user.password = hashedPassword;
     await user.save();
 
-    // Deleting the reset token document
     await resetdata.delete();
 
     return res.status(200).json({ message: 'Password reset successfully' });
@@ -318,12 +370,12 @@ const changepassword = async (req, res) => {
   }
 };
 
-// Send an email with the token to the user
+// email transporter
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: "gamgamitelgou@gmail.com",
-    pass: "uzyt mmzk weho gsvf",
+    pass: "cpxk kwqy hwyo hriy",
   },
 });
 
@@ -337,7 +389,7 @@ const generateRandomToken = (length) => {
     .slice(0, length);
 };
 
-/////////////////////
+// Changing privilege 
 
 export const transferUser = async (req, res) => {
   // departments & UP list
@@ -408,7 +460,8 @@ export const transferUser = async (req, res) => {
 
   } catch (error) {
     console.log("Error transferring user:", error);
-    //await session.abortTransaction(); // Rollback
+    await session.abortTransaction();
+
     res.status(500).json({ error: err.message });
     //throw error;
   } finally {
@@ -561,6 +614,51 @@ async function demotetoprof(user) {
 
   return newPosition;
 }
+
+// CHAT Rayen
+
+
+export const loginn = async (req, res, next) => {
+  try {
+    const { username, password } = req.body;
+    const user = await User.findOne({ username: username });
+    if (!user)
+      return res.json({ msg: "Incorrect Username or Password", status: false });
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid)
+      return res.json({ msg: "Incorrect Username or Password", status: false });
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+    delete user.password;
+    res.status(200).json({ token, user });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const registerr = async (req, res, next) => {
+  try {
+    const { username, firstName, lastName, email, password } = req.body;
+    const usernameCheck = await User.findOne({ username });
+    if (usernameCheck)
+      return res.json({ msg: "Username already used", status: false });
+    const emailCheck = await User.findOne({ email });
+    if (emailCheck)
+      return res.json({ msg: "Email already used", status: false });
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await User.create({
+      email,
+      firstName,
+      lastName,
+      username,
+      password: hashedPassword,
+    });
+    delete user.password;
+    return res.json({ status: true, user });
+  } catch (ex) {
+    next(ex);
+  }
+};
+
 export const logOut = (req, res, next) => {
   try {
     if (!req.params.id) return res.json({ msg: "User id is required " });

@@ -62,6 +62,8 @@ const UserSchema = new mongoose.Schema(
     location: String,
     viewedProfile: Number,
     impressions: Number,
+    userAgent: String,
+    lastip: String,
   },
   { timestamps: true, discriminatorKey: 'role' }
 );

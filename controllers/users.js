@@ -11,17 +11,7 @@ export const getUsers = async (req, res) => {
         res.status(404).json({ message: err.message });
     }
 };
-/*
-export const getLessPrivUsers = async (req, res) => {
-    try {
-        const requester = ;
-        const user = await User.find();
-        res.status(200).json(user);
-    } catch (err) {
-        res.status(404).json({ message: err.message });
-    }
-};
-*/
+
 export const getLessPrivUsers = async (req, res) => {
     try {
         const requesterRole = req.user.role;
