@@ -15,7 +15,6 @@ import activityRoutes from "./routes/Activity.js";
 import messageRoutes from"./routes/messages.js";
 import groupeRoutes from "./routes/groups.js"
 //import eventRoutes from "./routes/events.js"
-import { register } from "./controllers/auth.js";
 import { createPost } from "./controllers/posts.js";
 import { createActivity } from "./controllers/Activity.js";
 import { verifyToken } from "./middleware/auth.js";
@@ -56,7 +55,6 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 /* ROUTES WITH FILES */
-app.post("/auth/register", upload.single("picture"), register);
 app.post("/addpost", verifyToken, upload.single("picture"), createPost);
 //app.post('/posts', verifyToken, restrict('admin'), upload.single('picture'), createPost);
 app.post("/events/add", verifyToken, createEvent);
@@ -93,8 +91,8 @@ mongoose
   })
   .catch((error) => console.log(`${error} did not connect`));
 
-  const server = app.listen(process.env.PORT, () =>
-  console.log(`Server started on ${process.env.PORT}`)
+  const server = app.listen(PORT, () =>
+  console.log(`Server started on ${PORT}`)
   );
   const io = new Server(server, {
     cors: {
