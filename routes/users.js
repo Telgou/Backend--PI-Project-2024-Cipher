@@ -8,6 +8,7 @@ import {
   getLessPrivUsers,
   getSkills,
   getusersbyskill,
+  setAvatar
 } from "../controllers/users.js";
 import multer from "multer";
 import { verifyToken } from "../middleware/auth.js";
@@ -34,6 +35,7 @@ router.get("/getskills", verifyToken, getSkills);
 router.post("/getskilledusers", verifyToken, getusersbyskill);
 router.get("/:id", getUser);
 router.get("/:id/friends", getUserFriends);
+router.post("/setavatar/:id",verifyToken,setAvatar);
 
 /* UPDATE */
 router.patch("/:id/:friendId",verifyToken, checkOwnership, addRemoveFriend);
