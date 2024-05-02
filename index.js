@@ -61,7 +61,7 @@ const upload = multer({ storage });
 app.post("/auth/register", upload.single("picture"), register);
 app.post("/addpost", verifyToken, upload.single("picture"), createPost);
 //app.post('/posts', verifyToken, restrict('admin'), upload.single('picture'), createPost);
-app.post("/events/add", verifyToken, createEvent);
+app.post("/events/add", createEvent);
 
 app.post("/activity", verifyToken, upload.single("picture"), createActivity);
 

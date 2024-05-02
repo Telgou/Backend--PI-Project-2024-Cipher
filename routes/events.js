@@ -14,7 +14,7 @@ const router = express.Router();
 
 /* CREATE */
 
-router.get('/getEvents', verifyToken,getAllEvents);
+router.get('/getEvents',getAllEvents);
 
 router.get('/getEvent/:id', getEventById);
 
