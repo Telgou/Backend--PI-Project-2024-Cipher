@@ -210,3 +210,29 @@ export const addRemoveFriend = async (req, res) => {
         res.status(404).json({ message: err.message });
     }
 };
+
+/*export const setAvatar = async (req, res, next) => {
+    try {
+      const userId = req.userId;
+      const avatarImage = req.body.image;
+      const userData = await User.findByIdAndUpdate(
+        userId,
+        {
+          isAvatarImageSet: true,
+          avatarImage,
+        },
+        { new: true }
+      );
+      console.log('User Data', userData);
+      if (!userData) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      return res.json({
+        isSet: userData.isAvatarImageSet,
+        image: userData.avatarImage,
+      });
+    } catch (error) {
+        console.error('Error setting avatar:', error);
+        return res.status(500).json({ message: 'Internal server error' });
+      }
+  };*/

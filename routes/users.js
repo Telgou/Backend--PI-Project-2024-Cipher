@@ -35,6 +35,8 @@ router.post("/getskilledusers", verifyToken, getusersbyskill);
 router.get("/:id", getUser);
 router.get("/:id/friends", getUserFriends);
 
+//router.post("/setavatar/:id",verifyToken,setAvatar);
+
 /* UPDATE */
 router.patch("/:id/:friendId",verifyToken, checkOwnership, addRemoveFriend);
 router.put("/:id/update", verifyToken, checkOwnership, upload.single("picture"), updateUser);
