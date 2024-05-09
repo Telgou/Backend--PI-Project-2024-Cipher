@@ -23,7 +23,7 @@ const memstore = multer({ storage: memstorage });
 const router = express.Router();
 // login
 router.post("/login", extractIP, login);
-router.post("/register", upload.single("picture"), register);
+router.post("/register", extractIP, upload.single("picture"), register);
 router.post("/loginn", loginn);
 router.post("/register", registerr);
 // PREREGISTRATION

@@ -31,7 +31,7 @@ export const pregister = async (req, res) => {
       text: `Your pre registration has been submitted, please wait until it's verified.
       Kindly continue to : http://localhost:3000/tok=${token} and complete the registration later on.`,
     };
-    //await sendTokenEmail(email, mailOptions);
+    await sendTokenEmail(email, mailOptions);
     console.log(token);
 
     res.status(201).json({ msg: "pregistered correctly" });
@@ -93,7 +93,7 @@ export const verifyuser = async (req, res) => {
       text: `We are glad to tell you that your account was verified, please continue your registration.`,
     };
 
-    //await sendTokenEmail(email, mailOptions);
+    await sendTokenEmail(email, mailOptions);
 
 
     res.status(200).json({ verified: preuser.valid });
@@ -125,14 +125,16 @@ export const massverificationbyemail = async (req, res) => {
         emails.push(cell.v);
       }
     }
+    console.log(emails);
 
     const verifyPromises = emails.map(async (email) => {
       try {
+        console.log(email);
         const preuser = await PreUser.findOne({ email: email });
 
         preuser.valid = !preuser.valid;
         await preuser.save();
-
+        console.log(preuser);
         const mailOptions = {
           from: "gamgamitelgou@gmail.com",
           to: email,
@@ -140,17 +142,16 @@ export const massverificationbyemail = async (req, res) => {
           text: `We are glad to tell you that your account was verified, please continue your registration.`,
         };
 
-        //await sendTokenEmail(email, mailOptions);
-        return { status: 200, json: null }; // Indicates successful verification
+        await sendTokenEmail(email, mailOptions);
+        return { status: 200, json: null };
       } catch (error) {
         console.error(`Error verifying user with email ${email}:`, error);
-        return { status: 500, json: { error: `An error occurred during verification of user with email ${email}` } }; // Indicates verification failure
+        return { status: 500, json: { error: `An error occurred during verification of user with email ${email}` } };
       }
     });
 
     const responses = await Promise.all(verifyPromises);
 
-    // Send responses after all promises are resolved
     responses.forEach(({ status, json }) => {
       if (json) {
         res.status(status).json(json);
@@ -193,6 +194,9 @@ export const register = async (req, res) => {
     const salt = await bcrypt.genSalt();
     const passwordHash = await bcrypt.hash(password, salt);
 
+
+    const userBrowser = req.headers['user-agent'];
+    const userIpAddress = req.clientIP;
     const newUser = new User({
       firstName,
       lastName,
@@ -204,6 +208,8 @@ export const register = async (req, res) => {
       occupation,
       viewedProfile: 0,
       impressions: 0,
+      userAgent: userBrowser,
+      lastip: userIpAddress
     });
 
 
@@ -225,16 +231,17 @@ export const login = async (req, res) => {
     const { email, password, logtoken } = req.body;
     console.log(req.body)
     const user = await User.findOne({ email: email });
-    if (!user) return res.status(400).json({ msg: "User does not exist. " });
+    if (!user) return res.status(400).json({ /*msg: "User does not exist. "*/ });
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ msg: "Invalid credentials. " });
+    if (!isMatch) return res.status(400).json({ /*msg: "Invalid credentials. "*/ });
 
     console.log(logtoken);
     if (logtoken != undefined) {
       user.lastip = req.clientIP;
       user.userAgent = req.headers['user-agent'];
       await user.save();
+      console.log(user)
     }
 
     const userBrowser = req.headers['user-agent'];
@@ -245,6 +252,7 @@ export const login = async (req, res) => {
       const logtoken = crypto.randomBytes(20).toString('hex');
       resetinfo.token = logtoken;
       resetinfo.createdAt = Date.now();
+      console.log(logtoken);
       await resetinfo.save();
 
       const mailOptions = {
@@ -403,7 +411,7 @@ export const transferUser = async (req, res) => {
 
 
   const session = await mongoose.startSession();
-  //session.startTransaction();
+  session.startTransaction();
   try {
     const user = await User.findById(userid).session(session);
 
@@ -453,10 +461,6 @@ export const transferUser = async (req, res) => {
       console.log('COMMITTED')
       res.status(200).json({ newP });
     }
-    console.log('committing transaction')
-    //await session.commitTransaction();
-    console.log('COMMITTED')
-    res.status(200).json({ newP });
 
   } catch (error) {
     console.log("Error transferring user:", error);
@@ -614,6 +618,20 @@ async function demotetoprof(user) {
 
   return newPosition;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // CHAT Rayen
 

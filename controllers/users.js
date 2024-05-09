@@ -186,6 +186,7 @@ export const addRemoveFriend = async (req, res) => {
         await user.save();
         await friend.save();
 
+        console.log(user.friends)
         const friends = await Promise.all(
             user.friends.map((id) => User.findById(id))
         );
