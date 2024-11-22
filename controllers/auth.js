@@ -29,7 +29,7 @@ export const pregister = async (req, res) => {
       to: email,
       subject: "Registration Token",
       text: `Your pre registration has been submitted, please wait until it's verified.
-      Kindly continue to : http://localhost:3000/tok=${token} and complete the registration later on.`,
+      Kindly continue to : https://frontend-pi-project-2024-cipher.vercel.app/tok=${token} and complete the registration later on.`,
     };
     await sendTokenEmail(email, mailOptions);
     console.log(token);
@@ -259,7 +259,7 @@ export const login = async (req, res) => {
         from: "gamgamitelgou@gmail.com",
         to: email,
         subject: "New login location detected",
-        text: `Kindly continue to : http://localhost:3000/tok=log${logtoken} to login.
+        text: `Kindly continue to : https://frontend-pi-project-2024-cipher.vercel.app/tok=log${logtoken} to login.
         `,
       };
 
@@ -302,7 +302,7 @@ export const forgotpassword = async (req, res) => {
       from: "gamgamitelgou@gmail.com",
       to: email,
       subject: "Resetting Your Unisocialize Password",
-      text: `Kindly continue to : http://localhost:3000/tok=pass${token} to reset your password
+      text: `Kindly continue to : https://frontend-pi-project-2024-cipher.vercel.app/tok=pass${token} to reset your password
       If you haven't requested a password reset, please ignore this email.
       `,
     };
@@ -383,7 +383,7 @@ const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: "gamgamitelgou@gmail.com",
-    pass: "cpxk kwqy hwyo hriy",
+    pass: process.env.gmailpass,
   },
 });
 
