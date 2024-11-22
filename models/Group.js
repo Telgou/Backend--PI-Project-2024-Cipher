@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
-import autoIncrement from "mongoose-auto-increment";
 import {User} from "./User.js";
+import mongooseSequence from 'mongoose-sequence';
+const AutoIncrement = mongooseSequence(mongoose);
 
 const groupSchema = mongoose.Schema(
   {
@@ -44,20 +45,11 @@ const groupSchema = mongoose.Schema(
   { timestamps: true }
 );
 
-// Initialize auto-increment
-autoIncrement.initialize(mongoose.connection);
+// Apply auto-increment plugin to groupId field
+groupSchema.plugin(AutoIncrement, { inc_field: 'groupId', start_seq: 1 });
 
-// Apply auto-increment plugin to groupId and groupAdminId fields
-groupSchema.plugin(autoIncrement.plugin, {
-  model: "Group",
-  field: "groupId",
-  startAt: 1, // Start incrementing at 1
-});
-groupSchema.plugin(autoIncrement.plugin, {
-  model: "Group",
-  field: "groupAdminId",
-  startAt: 1, // Start incrementing at 1
-});
+// Apply auto-increment plugin to groupAdminId field
+groupSchema.plugin(AutoIncrement, { inc_field: 'groupAdminId', start_seq: 1 });
 
 const Group = mongoose.model("Group", groupSchema);
 
