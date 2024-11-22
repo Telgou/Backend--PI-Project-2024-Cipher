@@ -333,7 +333,7 @@ describe('Auth Controller Tests', () => {
         });
 
         it('should return 500 status on database error', async () => {
-            const existingUser = await User.create({ /* ...test user data... */ });
+            const existingUser = await User.create({ /* ...test user data...  });
        
             // Force an error in the User.findById call
             sandbox.stub(User, 'findById').throws(new Error('Database Error'));
