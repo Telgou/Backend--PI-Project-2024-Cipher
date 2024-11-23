@@ -83,7 +83,7 @@ const PORT = process.env.PORT || 3001;
 const mongoport = process.env.MONGO_URL || 'mongodb://localhost:27017/snu'
 console.log(mongoport);
 mongoose
-  .connect(process.env.MONGO_URL, {
+  .connect(mongoport, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
