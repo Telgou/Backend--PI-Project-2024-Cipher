@@ -104,6 +104,29 @@ export const addComment = async (req, res) => {
   }
 };
 
+/* DELETE */
+export const deletePost = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const post = await Post.findById(id);
+
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    // Ensure the current user is the owner of the post
+    if (post.userId.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Forbidden: Not authorized to delete this post" });
+    }
+
+    await post.deleteOne();
+    res.status(200).json({ message: "Post deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
 //// mem
 /*
 export const getFeedPosts = async (req, res) => {
