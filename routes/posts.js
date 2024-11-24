@@ -13,4 +13,6 @@ router.get("/:userId", verifyToken, getUserPosts);
 router.patch("/:id/like", verifyToken, likePost);
 router.post('/:postId/comments', verifyToken, addComment); 
 
+router.delete('/:id', deletePost);
+
 export default router;

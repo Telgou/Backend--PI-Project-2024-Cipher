@@ -79,7 +79,7 @@ app.use("/groups", groupeRoutes)
 //app.use("/events",eventRoutes)
 
 /* MONGOOSE SETUP */
-const PORT = process.env.PORT || 3004;
+const PORT = process.env.PORT || 3001;
 const mongoport = process.env.MONGO_URL || 'mongodb://localhost:27017/snu'
 console.log(mongoport);
 mongoose
@@ -96,15 +96,13 @@ mongoose
   const server = app.listen(PORT, () =>
   console.log(`Server started on ${PORT}`)
   );
-  console.log(server);
-
-
   const io = new Server(server, {
     cors: {
       origin: "http://localhost:3000",
       credentials: true,
     },
   });
+  
   global.onlineUsers = new Map();
   io.on("connection", (socket) => {
     global.chatSocket = socket;
