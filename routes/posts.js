@@ -1,5 +1,5 @@
 import express from "express";
-import { addComment, getFeedPosts, getUserPosts, likePost } from "../controllers/posts.js";
+import { addComment, deletePost, getFeedPosts, getUserPosts, likePost } from "../controllers/posts.js";
 import { verifyToken } from "../middleware/auth.js";
 import { checkOwnership } from "../middleware/resource-ownership.js";
 
